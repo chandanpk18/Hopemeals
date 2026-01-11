@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Request Food{% endblock %}
+
+{% block content %}
+<h2>Request Food</h2>
+
+<form method="post" novalidate>
+  {% csrf_token %}
+{% if messages %}
+  <div style="margin:10px 0;">
+    {% for message in messages %}
+      <div class="alert {{ message.tags }}" style="padding:8px;border:1px solid #ddd;margin-bottom:6px;">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+  <!-- Show validation errors -->
+  {{ form.non_field_errors }}
+  {{ form.item_name.errors }} {{ form.people_count.errors }}
+  {{ form.delivery_lat.errors }} {{ form.delivery_lng.errors }}
+
+  <label for="{{ form.item_name.id_for_label }}">Item name</label>
+  {{ form.item_name }}<br/>
+  <label for="{{ form.people_count.id_for_label }}">People count</label>
+  {{ form.people_count }}<br/>
+
+  <!-- The map -->
+  <div id="map" style="height:300px;border:1px solid #ccc;margin:10px 0;"></div>
+
+  <!-- Hidden fields populated by the map -->
+  {{ form.delivery_lat }} {{ form.delivery_lng }}
+
+  <button type="submit" id="submitBtn">Submit</button>
+</form>
+
+<!-- Leaflet assets -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+(function() {
+  // Default center (Mysuru)
+  var defaultLat = 12.30, defaultLng = 76.64, defaultZoom = 12;
+
+  var map = L.map('map').setView([defaultLat, defaultLng], defaultZoom);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+  var latInput = document.getElementById('id_delivery_lat');
+  var lngInput = document.getElementById('id_delivery_lng');
+  var submitBtn = document.getElementById('submitBtn');
+  var marker = null;
+
+  function setMarker(lat, lng) {
+    if (marker) map.removeLayer(marker);
+    marker = L.marker([lat, lng]).addTo(map);
+    latInput.value = (+lat).toFixed(6);
+    lngInput.value = (+lng).toFixed(6);
+    if (submitBtn) submitBtn.disabled = false;
+  }
+
+  // If form re-renders with values (after an error), restore the marker
+  if (latInput.value && lngInput.value) {
+    setMarker(latInput.value, lngInput.value);
+    map.setView([latInput.value, lngInput.value], 14);
+  } else {
+    if (submitBtn) submitBtn.disabled = true; // optional UX: disable until map click
+  }
+
+  // Click on map to choose location
+  map.on('click', function(e) {
+    setMarker(e.latlng.lat, e.latlng.lng);
+  });
+})();
+</script>
+{% endblock %}

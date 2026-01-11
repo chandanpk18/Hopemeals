@@ -1,0 +1,18 @@
+
+<div id="map" style="height: 300px; width: 100%;"></div>
+<input type="hidden" name="pickup_lat" id="id_pickup_lat">
+<input type="hidden" name="pickup_lng" id="id_pickup_lng">
+<script>
+  // Requires Google Maps JS with Places: https://maps.googleapis.com/maps/api/js?key=YOUR_KEY&libraries=places
+  function initPicker() {
+    const map = new google.maps.Map(document.getElementById("map"), { center: {lat: 12.2958, lng: 76.6394}, zoom: 12 });
+    let marker = null;
+    map.addListener("click", (e) => {
+      if (marker) marker.setMap(null);
+      marker = new google.maps.Marker({ position: e.latLng, map });
+      document.getElementById("id_pickup_lat").value = e.latLng.lat();
+      document.getElementById("id_pickup_lng").value = e.latLng.lng();
+    });
+  }
+  window.addEventListener("load", () => { if (window.google && google.maps) initPicker(); });
+</script>

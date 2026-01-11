@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Rating{% endblock %}
+
+{% block content %}
+{% endblock %}
+
+<h2>Request: {{ food.item_name }}</h2>
+<form method="post">{% csrf_token %}
+  <label>People Count</label>{{ form.people_count }}<br>
+  <div id="map" style="height:300px"></div>
+  {{ form.delivery_lat }}{{ form.delivery_lng }}
+  <button type="submit">Place Request</button>
+</form>
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_KEY&libraries=places"></script>
+<script>
+  function initPicker() {
+    const map = new google.maps.Map(document.getElementById("map"), { center: {lat: 12.2958, lng: 76.6394}, zoom: 12 });
+    let marker = null;
+    map.addListener("click", (e) => {
+      if (marker) marker.setMap(null);
+      marker = new google.maps.Marker({ position: e.latLng, map });
+      document.getElementById("id_delivery_lat").value = e.latLng.lat();
+      document.getElementById("id_delivery_lng").value = e.latLng.lng();
+    });
+  }
+  window.addEventListener("load", () => { if (window.google && google.maps) initPicker(); });
+</script>
+{% endblock %}

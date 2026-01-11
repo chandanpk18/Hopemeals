@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Post Food (Donor){% endblock %}
+
+{% block content %}
+<style>
+  .page-wrap { display:flex; justify-content:center; padding: 16px; }
+  .form-card {
+    width: 720px; max-width: 95vw;
+    background:#0b1220; color:#e2e8f0;
+    border:1px solid #1f2937; border-radius: 12px;
+    padding: 20px; box-shadow: 0 8px 24px rgba(0,0,0,.35);
+  }
+  .form-row { margin-bottom: 12px; }
+  .form-row label { display:block; margin-bottom:6px; color:#93a3b8; font-weight:600; }
+  .form-row input[type="text"],
+  .form-row input[type="number"],
+  .form-row input[type="datetime-local"],
+  .form-row textarea {
+    width:100%; padding:10px; border-radius:8px; border:1px solid #243042; background:#0f172a; color:#e2e8f0;
+  }
+  .btn { background:#2563eb; border:0; color:#fff; padding:10px 14px; border-radius:8px; cursor:pointer; }
+  #pickupMap { height: 360px; border-radius: 10px; overflow: hidden; border:1px solid #243042; }
+</style>
+
+<div class="page-wrap">
+  <div class="form-card">
+    <h2 style="margin:0 0 12px;">Post Food (Donor)</h2>
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+
+      <div class="form-row">
+        <label for="{{ form.item_name.id_for_label }}">Item Name</label>
+        {{ form.item_name }}
+      </div>
+
+      <div class="form-row">
+        <label for="{{ form.quantity_people.id_for_label }}">Quantity (people)</label>
+        {{ form.quantity_people }}
+      </div>
+
+      <div class="form-row">
+        <label for="{{ form.image.id_for_label }}">Photo</label>
+        {{ form.image }}
+      </div>
+
+      <div class="form-row">
+        <label for="{{ form.prepared_at.id_for_label }}">Prepared at</label>
+        {{ form.prepared_at }}
+      </div>
+
+      <div class="form-row">
+        <label for="{{ form.expires_at.id_for_label }}">Expires at</label>
+        {{ form.expires_at }}
+      </div>
+
+      <div class="form-row">
+        <label for="{{ form.description.id_for_label }}">Description</label>
+        {{ form.description }}
+      </div>
+
+      <!-- hidden lat/lng -->
+      {{ form.pickup_lat }} {{ form.pickup_lng }}
+
+      <div class="form-row">
+        <label>Pickup Location (click on map)</label>
+        <div id="pickupMap"></div>
+      </div>
+
+      <button class="btn" type="submit">Submit</button>
+    </form>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const map = L.map('pickupMap').setView([12.2958, 76.6394], 12); // Mysuru default
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
+
+  const latInput = document.getElementById('{{ form.pickup_lat.id_for_label }}');
+  const lngInput = document.getElementById('{{ form.pickup_lng.id_for_label }}');
+  let marker;
+
+  function setMarker(latlng) {
+    if (marker) map.removeLayer(marker);
+    marker = L.marker(latlng).addTo(map);
+    latInput.value = latlng.lat.toFixed(6);
+    lngInput.value = latlng.lng.toFixed(6);
+  }
+
+  // Try geolocation for nicer default
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const ll = [pos.coords.latitude, pos.coords.longitude];
+        map.setView(ll, 14); setMarker({lat: ll[0], lng: ll[1]});
+      },
+      () => {} // ignore errors; keep default center
+    );
+  }
+
+  map.on('click', (e) => setMarker(e.latlng));
+});
+</script>
+{% endblock %}

@@ -1,0 +1,323 @@
+{% extends "base.html" %}
+{% block title %}Receiver Dashboard{% endblock %}
+
+{% block content %}
+<div class="hm"><div class="container-locked">
+
+  <h2 style="margin-top: 20px;">Receiver Dashboard</h2>
+
+  <style>
+    .hm .container-locked {
+  max-width: 1200px;   /* adjust as you like */
+  margin: 0 auto;      /* center horizontally */
+}
+    /* --- donor-style cards / badges --- */
+    .hm .kpis{display:grid;gap:14px;grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:12px}
+    .hm .kpi-card{background:#0e1627;border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;gap:12px;align-items:center}
+    .hm .kpi-ico{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:#111c31;border:1px solid var(--border);font-size:1.1rem}
+    .hm .kpi-meta{color:#94a3b8;font-weight:600;font-size:.9rem}
+    .hm .kpi-val{font-size:1.6rem;font-weight:800;letter-spacing:.3px}
+    .hm .muted{color:#94a3b8}
+    .hm .card{background:#0e1627;border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px}
+    .hm table.table{width:100%;border-collapse:collapse}
+    .hm .table th,.hm .table td{padding:10px 12px;border-bottom:1px solid var(--border);text-align:left}
+    .hm .btn{display:inline-block;padding:8px 14px;border-radius:10px;background:#3b82f6;color:#fff;text-decoration:none}
+    .hm .btn.light{background:#111c31}
+    .hm .nowrap{white-space:nowrap}
+    .hm .badge{padding:.2rem .5rem;border-radius:999px;font-weight:700;font-size:.75rem;border:1px solid var(--border)}
+    .hm .success{background:#17301a;color:#86efac;border-color:#166534}
+    .hm .b-req{background:#302110;color:#fbbf24;border-color:#b45309}
+    .hm .b-app{background:#0f2a18;color:#86efac;border-color:#15803d}
+    .hm .b-alloc{background:#122433;color:#93c5fd;border-color:#2563eb}
+
+    /* request choices */
+    .hm .choices{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));margin-top:.35rem}
+    .hm .choice-input{display:none}
+    .hm .choice{background:#fff;color:#0f172a;border:2px solid transparent;border-radius:10px;padding:10px 12px;cursor:pointer;display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+    .hm .choice .title{font-weight:700}
+    .hm .choice .sub{font-size:.88rem;color:#334155;font-weight:600}
+    .hm .choice-input:checked + .choice{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.25)}
+
+    /* rating stars (interactive) */
+    .hm .rate-stars{display:inline-flex;flex-direction:row-reverse;gap:4px;vertical-align:middle}
+    .hm .rate-stars input{position:absolute;left:-9999px}
+    .hm .rate-stars label{cursor:pointer;font-size:1.2rem;color:#94a3b8;user-select:none}
+    .hm .rate-stars label:hover,
+    .hm .rate-stars label:hover ~ label{color:#f5c518}
+    .hm .rate-stars input:checked ~ label{color:#f5c518}
+    .hm .stars-ro{color:#f5c518;font-size:1.1rem;letter-spacing:1px}
+
+    @media (max-width:900px){ .hm .kpis{grid-template-columns:repeat(2,minmax(0,1fr))} }
+  </style>
+
+  <!-- KPI tiles -->
+  <div class="kpis">
+    <div class="kpi-card"><div class="kpi-ico">📨</div><div><div class="kpi-meta">Requested</div><div class="kpi-val">{{ kpis.REQUESTED|default:0 }}</div></div></div>
+    <div class="kpi-card"><div class="kpi-ico">✅</div><div><div class="kpi-meta">Approved</div><div class="kpi-val">{{ kpis.APPROVED|default:0 }}</div></div></div>
+    <div class="kpi-card"><div class="kpi-ico">📦</div><div><div class="kpi-meta">Allocated</div><div class="kpi-val">{{ kpis.ALLOCATED|default:0 }}</div></div></div>
+    <div class="kpi-card"><div class="kpi-ico">🚚</div><div><div class="kpi-meta">Delivered</div><div class="kpi-val">{{ kpis.DELIVERED|default:0 }}</div></div></div>
+  </div>
+<!-- Approved Food to Order -->
+
+
+ <div class="card" style="margin-top:20px;">
+  <h3>Available Food</h3>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Item</th>
+        <th>Qty</th>
+        <th>Expires</th>
+        
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for f in approved_food %}
+      <tr>
+        <td>#{{ f.id }}</td>
+        <td>{{ f.item_name }}</td>
+        <td>{{ f.inventory_remaining }}</td>
+        <td>{{ f.expires_at|date:"Y-m-d H:i" }}</td>
+        <td>
+          <button class="btn js-preview"
+                  data-id="{{ f.id }}"
+                  data-name="{{ f.item_name|escape }}"
+                  data-qty="{{ f.inventory_remaining }}"
+                  data-exp="{{ f.expires_at|date:'Y-m-d H:i' }}"
+                  data-img="{% if f.image %}{{ f.image.url }}{% endif %}"
+                  data-lat="{{ f.pickup_lat }}"
+                  data-lng="{{ f.pickup_lng }}">
+            Preview
+          </button>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="muted">No available food right now.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+
+  <!-- New Request -->
+  <div class="card">
+    <h3 style="margin:0 0 10px 0; color: white;">New Request</h3>
+
+    <form id="reqForm" method="post" action="{% url 'receiver_request_order' %}">
+      {% csrf_token %}
+      <div class="row">
+        <div>
+          <label>Food item</label>
+          <div class="choices" id="itemList" role="radiogroup" aria-label="Food item">
+           {% for it in item_options %}
+  <input class="choice-input" type="radio" id="item-{{ it.id }}" name="food_id"
+         value="{{ it.id }}" data-max="{{ it.available }}" required>
+  <label class="choice" for="item-{{ it.id }}">
+    <span class="title">{{ it.name }}</span>
+    <span class="sub">{{ it.available }} available</span>
+  </label>
+{% endfor %}
+          </div>
+        </div>
+
+        <div>
+          <label for="qtyInput">People count</label>
+          <input id="qtyInput" type="number" name="people_count" min="1" required placeholder="e.g. 5">
+          <div id="qtyHint" class="muted" style="margin-top:.25rem"></div>
+          <div id="qtyError" style="color:#fca5a5;font-size:.9rem;margin-top:.15rem;display:none">
+            Quantity exceeds available for this item.
+          </div>
+        </div>
+      </div>
+
+      <div class="row-1" style="margin-top:.75rem">
+        <label>Delivery location (tap on the map)</label>
+        <div id="map" style="height:300px;border-radius:10px;border:1px solid var(--border);margin:.5rem 0"></div>
+        <input type="hidden" id="lat" name="delivery_lat" required>
+        <input type="hidden" id="lng" name="delivery_lng" required>
+      </div>
+
+      <button id="submitBtn" class="btn" type="submit">Submit Request</button>
+    </form>
+  </div>
+
+  <!-- My Orders -->
+  <div class="card">
+    <h3 style="margin:0 0 10px 0; color: white">My Orders</h3>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th><th>Item</th><th>People</th><th>NGO</th><th>Status</th><th>Created</th>
+          <th>Order View</th><th>Ratings</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in orders %}
+        <tr>
+          <td>#{{ o.id }}</td>
+          <td>{{ o.item_name }}</td>
+          <td>{{ o.people_count }}</td>
+          <td>{% if o.ngo %}{{ o.ngo.username }}{% else %}–{% endif %}</td>
+          <td>
+            {% if o.status == "REQUESTED" %}<span class="badge b-req">Requested</span>
+            {% elif o.status == "APPROVED" %}<span class="badge b-app">Approved</span>
+            {% elif o.status == "ALLOCATED" %}<span class="badge b-alloc">Allocated</span>
+            {% elif o.status == "DELIVERED" %}<span class="badge success">Delivered</span>
+            {% else %}{{ o.status }}{% endif %}
+          </td>
+          <td>{{ o.created_at|date:"Y-m-d H:i" }}</td>
+
+          <!-- Order View -->
+          <td class="nowrap">
+            <details>
+              <summary class="btn light">Order View</summary>
+              <div style="margin-top:.5rem">
+                {% if o.allocations.all %}
+                  <table class="table mini" style="color:#e5e7eb;background-color:#0b1220">
+                    <thead><tr><th>Donor</th><th>Qty</th><th>Donation</th></tr></thead>
+                    <tbody>
+                      {% for a in o.allocations.all %}
+                        <tr>
+                          <td>{{ a.donation.donor.username }}</td>
+                          <td>{{ a.quantity }}</td>
+                          <td>#{{ a.donation.id }}</td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                {% else %}
+                  <span class="muted">No allocations yet.</span>
+                {% endif %}
+              </div>
+            </details>
+          </td>
+
+          <!-- Ratings -->
+          <td style="min-width:260px">
+            {% if o.allocations.all %}
+              {% if o.status == "DELIVERED" %}
+                <table class="table mini" style="color:#e5e7eb;background-color:#0b1220">
+                  <thead><tr><th>Rating</th><th>Action</th></tr></thead>
+                  <tbody>
+                  {% for a in o.allocations.all %}
+                    <tr>
+                      <td>
+                        {% if a.donation.id in my_rated_ids %}
+                          {% for fid,stars in my_ratings_list %}
+                            {% if fid == a.donation.id %}
+                              <span class="stars-ro">
+                                {% for i in "12345" %}{% if forloop.counter <= stars %}★{% else %}☆{% endif %}{% endfor %}
+                              </span>
+                            {% endif %}
+                          {% endfor %}
+                        {% else %}
+                          <span class="muted">Not rated</span>
+                        {% endif %}
+                      </td>
+                      <td class="nowrap">
+                        {% if a.donation.id in my_rated_ids %}
+                          <span class="muted">—</span>
+                        {% else %}
+                          <form method="post" action="{% url 'receiver_rate_donor' a.donation.id %}">
+                            {% csrf_token %}
+                            <span class="rate-stars">
+                              {% for s in "54321" %}
+                                <input type="radio" id="r{{s}}-{{a.id}}" name="stars" value="{{s}}">
+                                <label for="r{{s}}-{{a.id}}" title="{{s}}★">★</label>
+                              {% endfor %}
+                            </span>
+                            <input type="text" name="comment" placeholder="optional" class="txt" style="max-width:200px">
+                            <button class="btn" type="submit">Rate</button>
+                          </form>
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+              {% else %}
+                <span class="muted">After delivery</span>
+              {% endif %}
+            {% else %}
+              <span class="muted">No allocations</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+          <tr><td colspan="8" class="muted">No orders yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div></div>
+
+<!-- Leaflet assets -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+(function() {
+  const qty  = document.getElementById('qtyInput');
+  const hint = document.getElementById('qtyHint');
+  const err  = document.getElementById('qtyError');
+  const btn  = document.getElementById('submitBtn');
+
+  function getCheckedRadio(){ return document.querySelector('input[name="food_id"]:checked'); }
+  function getMax(){ const r=getCheckedRadio(); return r ? Number(r.dataset.max||0) : 0; }
+
+  function applyMax(){
+    const max = getMax();
+    if(max>0){ qty.max=String(max); hint.textContent="Max allowed: "+max; }
+    else{ qty.removeAttribute('max'); hint.textContent=""; }
+    validateQty();
+  }
+  function validateQty(){
+    const max=getMax(); const val=Number(qty.value||0); const bad=(max>0 && val>max);
+    err.style.display = bad ? 'block' : 'none';
+    btn.disabled = bad || !getCheckedRadio() || !qty.value;
+    qty.setCustomValidity(bad ? "Exceeds available" : "");
+  }
+
+  document.querySelectorAll('input[name="food_id"]').forEach(r => r.addEventListener('change', applyMax));
+  qty.addEventListener('input', validateQty);
+  applyMax();
+
+  // Map
+  const map = L.map('map').setView([12.2958, 76.6394], 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
+  let marker;
+  map.on('click', (e) => {
+    if (marker) map.removeLayer(marker);
+    marker = L.marker(e.latlng).addTo(map);
+    document.getElementById('lat').value = e.latlng.lat.toFixed(6);
+    document.getElementById('lng').value = e.latlng.lng.toFixed(6);
+  });
+})();
+// Preview modal (simple alert for now, you can replace with a proper modal)
+document.querySelectorAll('.js-preview').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    const id   = btn.dataset.id;
+    const name = btn.dataset.name;
+    const qty  = btn.dataset.qty;
+    const exp  = btn.dataset.exp;
+    const img  = btn.dataset.img;
+
+    let html = `<h3>Food #${id} - ${name}</h3>`;
+    html += `<p>Available: ${qty}</p>`;
+    html += `<p>Expires: ${exp}</p>`;
+    if (img) {
+      html += `<img src="${img}" alt="food" style="max-width:300px;border-radius:10px;">`;
+    }
+
+    // simplest preview: popup window
+    const w = window.open("", "Preview", "width=400,height=400");
+    w.document.write(html);
+  });
+});
+
+</script>
+{% endblock %}

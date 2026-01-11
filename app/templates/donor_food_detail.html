@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}Donation · {{ food.item_name }}{% endblock %}
+
+{% block content %}
+<div class="hm" style="margin-top: 25px;"><div class="container-locked">
+
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:.75rem">
+    <a class="btn light" href="{% url 'donor' %}">← Back to Dashboard</a>
+    <h2 style="margin:0">Donation Details</h2>
+  </div>
+
+  <!-- Donation summary -->
+  <div class="card" style="display:grid; gap:16px; grid-template-columns: 240px 1fr;">
+    <div>
+      {% if food.image %}
+        <img src="{{ food.image.url }}" alt="{{ food.item_name }}" style=" width:100%; height:180px; border-radius:12px; border:1px solid var(--border)">
+      {% else %}
+        <div style="height:180px; border-radius:12px; border:1px dashed var(--border); display:flex; align-items:center; justify-content:center; color:#94a3b8">
+          No photo
+        </div>
+      {% endif %}
+    </div>
+
+    <div>
+      <h3 style="margin:.25rem 0 .35rem 0; color: white;">{{ food.item_name }}</h3>
+      <div style="display:flex; gap:8px; align-items:center; margin-bottom:.5rem">
+        <span class="badge">{% if food.status %}{{ food.status }}{% else %}PENDING{% endif %}</span>
+        {% if food.expires_at %}<span class="muted">Expires: {{ food.expires_at }}</span>{% endif %}
+      </div>
+
+      <div class="grid kpis" style="grid-template-columns: repeat(4,minmax(120px,1fr)); margin:0">
+        <div class="card"><h3 style="color: white;">Quantity</h3><p class="kpi">{{ food.quantity_people }}</p></div>
+        <div class="card"><h3 style="color: white;">Remaining</h3><p class="kpi">{{ food.inventory_remaining }}</p></div>
+        <div class="card"><h3 style="color: white;">Prepared</h3><p class="kpi">{{ food.prepared_at|default:"—" }}</p></div>
+        <div class="card"><h3 style="color: white;">ID</h3><p class="kpi">#{{ food.id }}</p></div>
+      </div>
+    </div>
+  </div>
+{% if suggested_ngos %}
+  <div class="card" style="margin-top:1rem">
+    <h2>Nearby NGOs (based on pickup)</h2>
+    <div style="display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
+      {% for s in suggested_ngos %}
+        <div class="card" style="background:#0e1627;border:1px solid var(--border);border-radius:10px;padding:.75rem">
+          <div style="font-weight:700">{{ s.user.username }}</div>
+          {% if s.address %}
+            <div class="muted" style="margin:.15rem 0">{{ s.address }}</div>
+          {% endif %}
+          <div class="muted">{{ s.distance_km|floatformat:2 }} km away</div>
+        </div>
+      {% endfor %}
+    </div>
+    <div class="muted" style="margin-top:.5rem">
+      These are calculated from your donation’s pickup pin to NGO default locations.
+    </div>
+  </div>
+{% else %}
+  <div class="card" style="margin-top:1rem">
+    <h2>Nearby NGOs</h2>
+    <div class="muted">No NGOs have set their default location yet.</div>
+  </div>
+{% endif %}
+
+  <!-- Ratings summary -->
+<div class="card" style="margin-top:1rem">
+  <h2>Ratings</h2>
+
+  <style>
+    .hm .stars-ro { color:#f5c518; font-size:1.3rem; letter-spacing:1px }
+    .hm .review { border-top:1px solid var(--border); padding:.6rem 0 }
+    .hm .who { color:#cbd5e1; font-weight:600 }
+    .hm .meta { color:#94a3b8; font-size:.9rem }
+    .hm .bubble { background:#0e1627; border:1px solid var(--border); border-radius:10px; padding:.5rem .6rem; }
+  </style>
+
+  {% with avg=avg_stars|default:0 num=num_ratings|default:0 %}
+    <div style="display:flex; align-items:center; gap:12px; margin:.25rem 0 .75rem 0">
+      {% if num %}
+        <div class="stars-ro" aria-label="Average rating {{ avg }}/5">
+          {% for i in "12345" %}
+            {% if forloop.counter <= avg %}★{% else %}☆{% endif %}
+          {% endfor %}
+        </div>
+        <div class="meta">{{ avg }}/5 · {{ num }} review{{ num|pluralize }}</div>
+      {% else %}
+        <div class="meta">No ratings yet.</div>
+      {% endif %}
+    </div>
+  {% endwith %}
+
+ <!-- Reviews list -->
+<div>
+  {% if ratings %}
+    {% for r in ratings %}
+      <div class="review">
+        <div style="display:flex; align-items:center; justify-content:space-between">
+          <div class="who">
+            {{ r.role|default:"Reviewer" }}
+            <span class="meta">
+              {% if r.created_at %} · {{ r.created_at }}{% endif %}
+            </span>
+          </div>
+          <div class="stars-ro">
+            {% for i in "12345" %}
+              {% if forloop.counter <= r.stars %}★{% else %}☆{% endif %}
+            {% endfor %}
+          </div>
+        </div>
+        {% if r.comment %}
+          <div class="bubble" style="margin-top:.4rem">{{ r.comment }}</div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="meta">No reviews to show.</div>
+  {% endif %}
+</div>
+</div></div>
+{% endblock %}

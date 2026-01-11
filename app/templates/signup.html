@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+
+    <!-- Page Title -->
+    <title>Sign Up</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="{% static 'assets/images/logo/hope.png' %}" type="image/x-icon">
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="{% static 'assets/css/animate-3.7.0.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/font-awesome-4.7.0.min.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/bootstrap-4.1.3.min.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/owl-carousel.min.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/jquery.datetimepicker.min.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+</head>
+<body>
+    <!-- Preloader Starts -->
+    <div class="preloader">
+        <div class="spinner"></div>
+    </div>
+    <!-- Preloader End -->
+
+<body>
+    <!-- Preloader Starts -->
+    <div class="preloader">
+        <div class="spinner"></div>
+    </div>
+    <!-- Preloader End -->
+
+    <!-- Header Area Starts -->
+	<header class="header-area header-area2">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-2">
+                    <div class="logo-area">
+                        <a href="{% url 'home' %}" style="color:white;font-size: 20px;"><img src="{% static 'assets/images/logo/hope.png' %}" alt="HopeMeals logo">HopeMeals</a>
+                    </div>
+                </div>
+                <div class="col-lg-10">
+                    <div class="custom-navbar">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <div class="main-menu main-menu2">
+                        <ul>
+                            <li class="active"><a href="{% url 'home' %}">Home</a></li>
+                            <li><a href="{% url 'signup' %}">Signup</a></li>
+                            <li><a href="{% url 'login' %}">Login</a></li>
+                            <li><a href="{% url 'help' %}">Contact</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- Header Area End -->
+
+    <!-- Banner Area Starts -->
+    <section class="banner-area banner-area2 menu-bg text-center">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1><i>Sign Up to Join HopeMeals</i></h1>
+                    <p class="pt-2"><i>Be part of the change in the fight against hunger and food waste.</i></p>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Banner Area End -->
+
+    <!-- Sign Up Options Starts -->
+    <section class="food-area section-padding">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="section-top">
+                        <h3><span class="style-change">choose your</span> <br>role, be the reason someone eats today.</h3>
+                        <p class="pt-3">Sign up as a Donor, NGO, or Receiver to make a difference in reducing food waste and fighting hunger.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+
+                <!-- Donor Option -->
+                <div class="col-md-4 col-sm-6">
+                    <div class="single-food">
+                        <div class="food-img" style="height: 250px; overflow: hidden;">
+                            <img src="{% static 'assets/images/img.png' %}" class="img-fluid w-100 h-100" style="object-fit: cover;" alt="Donor">
+                        </div>
+                        <div class="food-content text-center">
+                            <h5>Donor</h5>
+                            <p class="pt-3">Donate excess food to NGOs and help those in need. Make an impact on reducing food waste.</p>
+                            <a href="{% url 'donors' %}" class="template-btn mt-3">Sign Up as Donor</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NGO Option -->
+                <div class="col-md-4 col-sm-6">
+                    <div class="single-food mt-5 mt-sm-0">
+                        <div class="food-img" style="height: 250px; overflow: hidden;">
+                            <img src="{% static 'assets/images/ngo.png' %}" class="img-fluid w-100 h-100" style="object-fit: cover;" alt="NGO">
+                        </div>
+                        <div class="food-content text-center">
+                            <h5>NGO</h5>
+                            <p class="pt-3">Partner with us to receive food donations and distribute them to communities in need.</p>
+                            <a href="{% url 'ngos' %}" class="template-btn mt-3">Sign Up as NGO</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Receiver Option -->
+                <div class="col-md-4 col-sm-6">
+                    <div class="single-food mt-5 mt-md-0">
+                        <div class="food-img" style="height: 250px; overflow: hidden;">
+                            <img src="{% static 'assets/images/receive.png' %}" class="img-fluid w-100 h-100" style="object-fit: cover;" alt="Receiver">
+                        </div>
+                        <div class="food-content text-center">
+                            <h5>Receiver</h5>
+                            <p class="pt-3">Request food from NGOs and help reduce hunger by receiving food when needed.</p>
+                            <a href="{% url 'receivers' %}" class="template-btn mt-3">Sign Up as Receiver</a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+    <!-- Sign Up Options End -->
+
+    <!-- Footer Area Starts -->
+    <footer class="footer-area">
+        <div class="footer-widget section-padding">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="single-widget single-widget1">
+                            <a href="{% url 'home' %}" style="color:white;font-size:30px;">HopeMeals</a>
+                            <p class="mt-3">HopeMeals is committed to reducing food waste, feeding the hungry, and promoting sustainability. Join us today to make a difference in the world!</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="single-widget single-widget2 my-5 my-md-0">
+                            <h5 class="mb-4">Contact Us</h5>
+                            <div class="d-flex">
+                                <div class="into-icon">
+                                    <i class="fa fa-map-marker"></i>
+                                </div>
+                                <div class="info-text">
+                                    <p><a href="https://maps.app.goo.gl/CRs4PLRPf6FxuDn98" target="_blank" rel="noopener noreferrer" style="color:gray;">Vidya Vikas Institute of Engineering & Technology</a></p>
+                                </div>
+                            </div>
+                            <div class="d-flex">
+                                <div class="into-icon">
+                                    <i class="fa fa-phone"></i>
+                                </div>
+                                <div class="info-text">
+                                    <p><a href="tel:+918431533398" style="color: gray;">+918431533398</a></p>
+                                </div>
+                            </div>
+                            <div class="d-flex">
+                                <div class="into-icon">
+                                    <i class="fa fa-envelope-o"></i>
+                                </div>
+                                <div class="info-text">
+                                    <p><a href="mailto:support@HopeMeals.com" style="color: gray;">support@HopeMeals.com</a></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-copyright">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-7 col-md-6">
+                        <span>&copy; <script>document.write(new Date().getFullYear());</script> All rights reserved | HopeMeals</span>
+                    </div>
+                    <div class="col-lg-5 col-md-6">
+                        <div class="social-icons">
+                            <ul>
+                                <li><a href="#"><i class="fa fa-facebook"></i></a></li>
+                                <li><a href="#"><i class="fa fa-twitter"></i></a></li>
+                                <li><a href="#"><i class="fa fa-google-plus"></i></a></li>
+                                <li><a href="#"><i class="fa fa-pinterest"></i></a></li>
+                                <li><a href="#"><i class="fa fa-instagram"></i></a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- Footer Area End -->
+
+    <!-- Javascript -->
+    <script src="{% static 'assets/js/vendor/jquery-2.2.4.min.js' %}"></script>
+    <script src="{% static 'assets/js/vendor/bootstrap-4.1.3.min.js' %}"></script>
+    <script src="{% static 'assets/js/vendor/wow.min.js' %}"></script>
+    <script src="{% static 'assets/js/vendor/owl-carousel.min.js' %}"></script>
+    <script src="{% static 'assets/js/vendor/jquery.datetimepicker.full.min.js' %}"></script>
+    <script src="{% static 'assets/js/vendor/jquery.nice-select.min.js' %}"></script>
+    <script src="{% static 'assets/js/main.js' %}"></script>
+</body>
+</html>

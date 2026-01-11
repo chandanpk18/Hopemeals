@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="hm-center">
+  <h2 class="hm-title">NGO Default Location</h2>
+
+  <form method="post" class="hm-card">{% csrf_token %}
+    <div class="form-group">
+      <label>Address (optional)</label>
+      <input name="address_line" class="form-control"
+             value="{{ loc.address_line|default_if_none:'' }}">
+    </div>
+
+    <!-- Hidden fields filled by map picker -->
+    <input type="hidden" id="lat" name="lat" value="{{ loc.lat|default_if_none:'' }}">
+    <input type="hidden" id="lng" name="lng" value="{{ loc.lng|default_if_none:'' }}">
+
+    <div class="form-group">
+      <label>Pick Location on Map</label>
+      <div id="map" class="hm-map"></div>
+      <small class="form-text text-muted">
+        Click on the map (or drag the pin) to set your NGO’s default location.
+      </small>
+    </div>
+
+    <div class="hm-actions">
+      <button class="btn btn-secondary" type="button" id="use-geoloc">Use my current location</button>
+      <button class="btn btn-outline" type="button" id="reset-india">Center on Mysuru</button>
+      <div class="hm-spacer"></div>
+      <button class="btn btn-primary" type="submit">Save</button>
+    </div>
+  </form>
+</div>
+
+<!-- Leaflet CSS/JS (inline so it works even if base.html has no extra blocks) -->
+<link rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<style>
+  /* Center container */
+  .hm-center{
+    max-width: 920px;
+    margin: 24px auto 40px;
+    padding: 0 16px;
+  }
+  .hm-title{
+    margin: 0 0 14px;
+    text-align: center;
+    font-weight: 800;
+  }
+  /* Card look for the form */
+  .hm-card{
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .form-group{ margin-bottom: 12px; }
+  .hm-actions{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .hm-spacer{ flex: 1 1 auto; }
+  /* Map needs an explicit size */
+  .hm-map{
+    height: 420px;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    margin-top: 6px;
+  }
+  /* Ensure Leaflet tiles are visible on dark themes */
+  .leaflet-container{ background: #0d1117; }
+</style>
+
+<script>
+(function(){
+  function ready(fn){ document.readyState !== 'loading' ? fn() : document.addEventListener('DOMContentLoaded', fn); }
+
+  ready(function(){
+    // Read initial values (fallback to India center)
+    const latInput = document.getElementById('lat');
+    const lngInput = document.getElementById('lng');
+    const lat0 = parseFloat(latInput.value);
+    const lng0 = parseFloat(lngInput.value);
+    const hasSaved = !(isNaN(lat0) || isNaN(lng0));
+    const startLat = hasSaved ? lat0 : 12.2958;
+    const startLng = hasSaved ? lng0 : 76.6394;
+
+    // Build map
+    const map = L.map('map', { zoomControl: true }).setView([startLat, startLng], hasSaved ? 12 : 12);
+
+    // Free OSM tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    // Draggable marker
+    let marker = L.marker([startLat, startLng], { draggable: true }).addTo(map);
+
+    function updateHidden(ll){
+      latInput.value = ll.lat.toFixed(6);
+      lngInput.value = ll.lng.toFixed(6);
+    }
+    updateHidden(marker.getLatLng());
+
+    // Click to move marker
+    map.on('click', (e) => {
+      marker.setLatLng(e.latlng);
+      updateHidden(e.latlng);
+    });
+
+    // Drag end
+    marker.on('dragend', (e) => updateHidden(e.target.getLatLng()));
+
+    // Buttons
+    document.getElementById('use-geoloc').addEventListener('click', () => {
+      if (!navigator.geolocation) { alert('Geolocation not supported on this browser.'); return; }
+      navigator.geolocation.getCurrentPosition((pos) => {
+        const ll = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        marker.setLatLng(ll);
+        map.setView(ll, 14);
+        updateHidden(ll);
+      }, () => alert('Unable to fetch your location.'));
+    });
+
+    document.getElementById('reset-india').addEventListener('click', () => {
+    map.setView([12.2958, 76.6394], 12);
+    });
+
+    // If the map container was hidden during layout, ensure proper render
+    setTimeout(() => { map.invalidateSize(); }, 100);
+  });
+})();
+</script>
+{% endblock %}

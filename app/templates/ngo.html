@@ -1,0 +1,584 @@
+{% extends "base.html" %}
+{% block title %}NGO Dashboard{% endblock %}
+
+{% block content %}
+<div class="hm" style="margin-top: 20px;">
+  <div class="container-locked">
+
+    <h2>NGO Dashboard</h2>
+
+    <style>
+      /* --- shared dashboard look (matches donor) --- */
+      .hm .kpis {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        margin-bottom: 12px
+      }
+.hm .container-locked {
+  max-width: 1200px;   /* adjust as you like */
+  margin: 0 auto;      /* center horizontally */
+}
+
+      .hm .kpi-card {
+        background: #0e1627;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 14px;
+        display: flex;
+        gap: 12px;
+        align-items: center
+      }
+
+      .hm .kpi-ico {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #111c31;
+        border: 1px solid var(--border);
+        font-size: 1.1rem
+      }
+
+      .hm .kpi-meta {
+        color: #94a3b8;
+        font-weight: 600;
+        font-size: .9rem
+      }
+
+      .hm .kpi-val {
+        font-size: 1.6rem;
+        font-weight: 800;
+        letter-spacing: .3px
+      }
+
+      .hm .muted {
+        color: #94a3b8
+      }
+
+      .hm .card {
+        background: #0e1627;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px;
+        margin-bottom: 14px
+      }
+
+      .hm table.table {
+        width: 100%;
+        border-collapse: collapse
+      }
+
+      .hm .table th,
+      .hm .table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border);
+        text-align: left
+      }
+
+      .hm .btn {
+        display: inline-block;
+        padding: 8px 14px;
+        border-radius: 10px;
+        background: #3b82f6;
+        color: #fff;
+        text-decoration: none
+      }
+
+      .hm .btn.secondary {
+        background: #111c31
+      }
+
+      .hm .btn.danger {
+        background: #b91c1c
+      }
+
+      .hm .nowrap {
+        white-space: nowrap
+      }
+
+      .hm .table th,
+      .hm .table td {
+        vertical-align: middle;
+      }
+
+      .hm .rating {
+        vertical-align: middle;
+        gap: 4px;
+      }
+
+      .hm .table th,
+      .hm .table td {
+        vertical-align: middle;
+      }
+
+      .hm .rating {
+        vertical-align: middle;
+        gap: 4px;
+      }
+
+      /* badges (for statuses) */
+      .hm .badge {
+        padding: .2rem .5rem;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: .75rem;
+        border: 1px solid var(--border)
+      }
+
+      .hm .b-wait {
+        background: #302110;
+        color: #fbbf24;
+        border-color: #b45309
+      }
+
+      .hm .b-ready {
+        background: #0f2a18;
+        color: #86efac;
+        border-color: #15803d
+      }
+
+      .hm .b-order {
+        background: #122433;
+        color: #93c5fd;
+        border-color: #2563eb
+      }
+
+      .hm .b-deliv {
+        background: #17301a;
+        color: #86efac;
+        border-color: #166534
+      }
+
+      /* star rating (interactive + readonly) */
+      .hm .rating {
+        display: inline-flex;
+        flex-direction: row-reverse;
+        gap: 4px;
+        line-height: 1
+      }
+
+      .hm .rating input {
+        display: none
+      }
+
+      .hm .rating label {
+        cursor: pointer;
+        color: #334155;
+        font-size: 1.2rem;
+        user-select: none
+      }
+
+      .hm .rating label:hover,
+      .hm .rating label:hover~label {
+        color: #f5c518
+      }
+
+      .hm .rating input:checked~label {
+        color: #f5c518
+      }
+
+      .hm .stars-ro {
+        color: #f5c518;
+        font-size: 1.1rem;
+        letter-spacing: 1px
+      }
+
+      /* delivery segmented control (from your version) */
+      .hm .seg {
+        display: inline-flex;
+        gap: 8px;
+        padding: 6px;
+        background: #0e1627;
+        border: 1px solid var(--border);
+        border-radius: 12px
+      }
+
+      .hm .seg input {
+        display: none
+      }
+
+      .hm .seg label {
+        padding: .38rem .7rem;
+        border-radius: 9px;
+        font-weight: 600;
+        cursor: pointer;
+        background: #111c31;
+        color: #cbd5e1;
+        border: 1px solid var(--border)
+      }
+
+      .hm .seg input:checked+label {
+        background: #3b82f6;
+        color: #fff;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, .25)
+      }
+
+      .hm .seg label.opt-delivered {
+        background: #17301a;
+        border-color: #14532d;
+        color: #86efac
+      }
+
+      .hm .seg input:checked+label.opt-delivered {
+        background: #16a34a;
+        color: #fff;
+        border-color: #15803d;
+        box-shadow: 0 0 0 3px rgba(22, 163, 74, .25)
+      }
+
+      @media (max-width:900px) {
+        .hm .kpis {
+          grid-template-columns: repeat(2, minmax(0, 1fr))
+        }
+      }
+    </style>
+
+    <!-- KPI cards -->
+    <div class="kpis">
+      <div class="kpi-card">
+        <div class="kpi-ico">📝</div>
+        <div>
+          <div class="kpi-meta">Awaiting Approval</div>
+          <div class="kpi-val">{{ counts.awaiting }}</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-ico">✅</div>
+        <div>
+          <div class="kpi-meta">Approved / In Stock</div>
+          <div class="kpi-val">{{ counts.approved }}</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-ico">📦</div>
+        <div>
+          <div class="kpi-meta">Receiver Orders (Open)</div>
+          <div class="kpi-val">{{ counts.requested }}</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-ico">🚚</div>
+        <div>
+          <div class="kpi-meta">Delivered</div>
+          <div class="kpi-val">{{ counts.delivered }}</div>
+        </div>
+      </div>
+    </div>
+    <div style="display: flex; justify-content: center;">
+    {% if request.user.is_authenticated and request.user.groups.all.0.name == "NGO" %}
+    <a href="{% url 'ngo_location_settings' %}"style="margin:10px;padding:10px !important;background-color: #05bd14;border-radius: 8px;">My Location</a></li>
+    {% endif %}
+    </div>
+    <!-- Pending donations -->
+    <div class="card" style="margin-top: 15px;">
+      <h3 style="margin:0 0 10px 0; color: white;">Pending Donations</h3>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Item</th>
+            <th>Qty</th>
+            <th>Expires</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+  {% for row in pending_rows %}
+    {% with f=row.food %}
+    <tr>
+      <td>#{{ f.id }}</td>
+      <td>{{ f.item_name }}</td>
+      <td>{{ f.quantity_people }}</td>
+      <td>{{ f.expires_at|date:"Y-m-d H:i" }}</td>
+      <td class="nowrap">
+        {% if row.can_accept %}
+          <button class="btn js-preview"
+                  data-id="{{ f.id }}"
+                  data-name="{{ f.item_name|escape }}"
+                  data-qty="{{ f.quantity_people }}"
+                  data-exp="{{ f.expires_at|date:'Y-m-d H:i' }}"
+                  data-img="{% if f.image %}{{ f.image.url }}{% endif %}"
+                  data-lat="{{ f.pickup_lat }}"
+                  data-lng="{{ f.pickup_lng }}"
+                  data-accept-url="{% url 'ngo_accept_food' f.id %}"
+                  data-reject-url="{% url 'ngo_reject_food' f.id %}">
+            Preview & Decide
+          </button>
+        {% else %}
+          <span class="badge muted">Not in your pickup zone</span>
+        {% endif %}
+      </td>
+    </tr>
+    {% endwith %}
+  {% empty %}
+    <tr><td colspan="5" class="muted">No pending donations.</td></tr>
+  {% endfor %}
+</tbody>
+      </table>
+    </div>
+
+    <!-- Approved / In Stock + inline ratings -->
+    <div class="card">
+      <h3 style="margin:0 0 10px 0; color: white;">Approved / In Stock</h3>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Item</th>
+            <th>Qty</th>
+            <th>Expires</th>
+            <th>Rating</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for f in approved_food %}
+          <tr>
+            <td>#{{ f.id }}</td>
+            <td>{{ f.item_name }}</td>
+            <td>{{ f.inventory_remaining }}</td>
+            <td>{{ f.expires_at|date:"Y-m-d H:i" }}</td>
+            <td>
+              {% if f.id in ngo_rated_ids %}
+              {# readonly (already rated) #}
+              {% for fid,stars in ngo_ratings_list %}{% if fid == f.id %}
+              <span class="stars-ro" aria-label="{{ stars }} of 5">
+                {% for i in "12345" %}
+                {% if forloop.counter <= stars %}★{% else %}☆{% endif %} {% endfor %} </span>
+                  {% endif %}{% endfor %}
+                  {% else %}
+                  {# interactive direct rating (auto-submit) #}
+                  <form method="post" action="{% url 'ngo_rate_donor' f.id %}" class="rate-form">
+                    {% csrf_token %}
+                    <span class="rating" aria-label="Rate this donation">
+                      {% for s in "54321" %}
+                      <input type="radio" id="ngostar{{s}}-{{f.id}}" name="stars" value="{{s}}">
+                      <label for="ngostar{{s}}-{{f.id}}" title="{{s}} stars">★</label>
+                      {% endfor %}
+                    </span>
+                    <input type="text" name="comment" placeholder="Add a comment (optional)"
+                      style="margin-left:8px; max-width:220px;">
+                    <button class="btn" type="submit" style="margin-left:8px">Rate</button>
+                  </form>
+                  {% endif %}
+            </td>
+          </tr>
+          {% empty %}<tr>
+            <td colspan="5" class="muted">No approved stock yet.</td>
+          </tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Receiver Orders -->
+    <div class="card">
+      <h3 style="margin:0 0 10px 0;color: white;">Receiver Orders</h3>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Item</th>
+            <th>Qty</th>
+            <th>Receiver</th>
+            <th>NGO</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for o in requested_food %}
+          <tr>
+            <td>#{{ o.id }}</td>
+            <td>{{ o.item_name }}</td>
+            <td>{{ o.people_count }}</td>
+            <td>{{ o.receiver.username }}</td>
+            <td>
+              {% if o.status == "REQUESTED" %}<span class="badge b-wait">Requested</span>
+              {% elif o.status == "APPROVED" %}<span class="badge b-ready">Approved</span>
+              {% elif o.status == "ALLOCATED" %}<span class="badge b-order">Allocated</span>
+              {% elif o.status == "DELIVERED" %}<span class="badge b-deliv">Delivered</span>
+              {% else %}{{ o.status }}{% endif %}
+            </td>
+
+            <td>{{ o.status }}</td>
+            <td>
+              {% if o.status == "REQUESTED" or o.status == "APPROVED" %}
+              <a class="btn" href="{% url 'ngo_approve_order' o.id %}">Approve & Allocate (PDF)</a>
+              {% endif %}
+              {% if o.status == "ALLOCATED" %}
+              <a class="btn secondary" href="{% url 'ngo_combined_map' o.id %}">Route Map</a>
+              {% endif %}
+            </td>
+
+          </tr>
+          {% empty %}<tr>
+            <td colspan="6" class="muted">No orders yet.</td>
+          </tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Active Deliveries (segmented control preserved) -->
+    <div class="card">
+      <h3 style="margin:0 0 10px 0; color: white;">Active Deliveries</h3>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Order</th>
+            <th>Receiver</th>
+            <th>Status</th>
+            <th>Started</th>
+            <th>Update</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in deliveries %}
+          <tr>
+            <td>#{{ d.id }}</td>
+            <td>#{{ d.order.id }}</td>
+            <td>{{ d.order.receiver.username }}</td>
+            <td><strong>{{ d.status }}</strong></td>
+            <td>{{ d.started_at|date:"Y-m-d H:i" }}</td>
+            <td class="nowrap">
+              <form method="post" action="{% url 'delivery_update_status' d.id %}">
+                {% csrf_token %}
+                <div class="seg" role="radiogroup" aria-label="Update delivery status">
+  <input type="radio" id="s-pick-{{ d.id }}" name="status" value="PICKED_UP"
+         {% if d.status == "PICKED_UP" %}checked{% endif %}>
+  <label for="s-pick-{{ d.id }}">Picked Up</label>
+
+  <input type="radio" id="s-transit-{{ d.id }}" name="status" value="IN_TRANSIT"
+         {% if d.status == "IN_TRANSIT" %}checked{% endif %}>
+  <label for="s-transit-{{ d.id }}">In Transit</label>
+
+  <input type="radio" id="s-done-{{ d.id }}" name="status" value="DELIVERED"
+         {% if d.status == "DELIVERED" %}checked{% endif %}>
+  <label for="s-done-{{ d.id }}" class="opt-delivered">Delivered</label>
+</div>
+                <button class="btn" type="submit" style="margin-left:10px">Update</button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}<tr>
+            <td colspan="6" class="muted">No active deliveries.</td>
+          </tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+<!-- Preview Modal -->
+<div id="previewModal" class="hm-modal"
+  style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);z-index:9999">
+  <div class="hm-modal-card"
+    style="width:min(920px,95vw);max-height:90vh;overflow:auto;background:#0e1627;border:1px solid var(--border);border-radius:14px;padding:16px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <h3 id="pm-title" style="margin:0;">Food preview</h3>
+      <button id="pm-close" class="btn light">✕</button>
+    </div>
+
+    <div style="display:grid;gap:14px;grid-template-columns:340px 1fr;">
+      <div>
+        <img id="pm-img" src="" alt="Food image"
+             style="width:100%;max-height:260px;object-fit:cover;border-radius:10px;border:1px solid var(--border)">
+        <div style="margin-top:8px;font-size:.92rem;color:#94a3b8">
+          <div><strong>Item:</strong> <span id="pm-name"></span></div>
+          <div><strong>Servings:</strong> <span id="pm-qty"></span></div>
+          <div><strong>Expires:</strong> <span id="pm-exp"></span></div>
+        </div>
+      </div>
+      <div>
+        <div id="pm-map" style="height:320px;border:1px solid var(--border);border-radius:10px;"></div>
+        <div style="margin-top:8px;color:#94a3b8;font-size:.9rem">
+          Pickup location is shown on the map. Please collect & inspect before confirming.
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:14px;display:flex;gap:10px;justify-content:flex-end">
+      <a id="pm-accept" class="btn">Accept</a>
+      <a id="pm-reject" class="btn danger">Reject</a>
+    </div>
+  </div>
+</div>
+
+<!-- Leaflet (free) -->
+<link rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<script>
+(function () {
+  const el = (id) => document.getElementById(id);
+  const modal = el('previewModal');
+  const img = el('pm-img');
+  const nameEl = el('pm-name');
+  const qtyEl = el('pm-qty');
+  const expEl = el('pm-exp');
+  const acceptBtn = el('pm-accept');   // now exists
+  const rejectBtn = el('pm-reject');
+  const closeBtn = el('pm-close');
+
+  let map, marker;
+
+  function showModal(d){
+    // image
+    if (d.img) { img.src = d.img; img.style.display='block'; }
+    else { img.removeAttribute('src'); img.style.display='none'; }
+
+    nameEl.textContent = d.name || '';
+    qtyEl.textContent  = d.qty || '';
+    expEl.textContent  = d.exp || '';
+    acceptBtn.href     = d.acceptUrl || '#';
+    rejectBtn.href     = d.rejectUrl || '#';
+
+    const lat = parseFloat(d.lat), lng = parseFloat(d.lng);
+    if (!isNaN(lat) && !isNaN(lng)) {
+      const ll = [lat, lng];
+      // lazy init Leaflet map
+      if (!map){
+        map = L.map('pm-map', { zoomControl:true }).setView(ll, 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19, attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+        marker = L.marker(ll).addTo(map);
+      } else {
+        map.setView(ll, 13);
+        marker.setLatLng(ll);
+        setTimeout(()=>map.invalidateSize(), 50);
+      }
+    }
+    modal.style.display='flex';
+  }
+
+  function hideModal(){ modal.style.display='none'; }
+
+  document.addEventListener('click', function(e){
+    const btn = e.target.closest('.js-preview');
+    if (btn){
+      e.preventDefault();
+      showModal({
+        id: btn.dataset.id,
+        name: btn.dataset.name,
+        qty: btn.dataset.qty,
+        exp: btn.dataset.exp,
+        img: btn.dataset.img,
+        lat: btn.dataset.lat,
+        lng: btn.dataset.lng,
+        acceptUrl: btn.dataset.acceptUrl,
+        rejectUrl: btn.dataset.rejectUrl
+      });
+    }
+  });
+  closeBtn.addEventListener('click', hideModal);
+  modal.addEventListener('click', (e)=>{ if (e.target === modal) hideModal(); });
+})();
+</script>
+{% endblock %}

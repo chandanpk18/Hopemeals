@@ -1,0 +1,420 @@
+{% extends "base.html" %}
+{% block title %}Hopemeals · Admin SOC Dashboard{% endblock %}
+
+{% block content %}
+<!-- Charts + plugins -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.1.0/dist/chartjs-plugin-annotation.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.umd.min.js"></script>
+<!-- Structured PDF (tables) -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2"></script>
+
+<style>
+  :root{
+    --bg:#0b1220; --panel:#0e172a; --card:#111c32; --card2:#0f1a2e;
+    --text:#e6edf3; --muted:#9fb0c3; --accent:#22d3ee; --accent2:#a78bfa;
+    --ok:#22c55e; --warn:#f59e0b; --crit:#ef4444; --ring:0 0 0 1px #1f2b45, 0 2px 12px #0b1220 inset;
+  }
+  body{background:radial-gradient(1000px 500px at 90% -10%, #1e293b33, transparent), var(--bg); color:var(--text)}
+  .layout{display:grid; grid-template-columns:260px 1fr; gap:16px; max-width:1400px; margin:0 auto; padding:16px}
+  .sidebar{position:sticky; top:70px; align-self:start; background:linear-gradient(180deg,var(--panel),#0c1528); border:1px solid #1f2b45; border-radius:16px; padding:16px; box-shadow:var(--ring)}
+  .side-title{margin:0 0 6px; font-size:14px; opacity:.9}
+  .side-line{height:2px; background:linear-gradient(90deg, transparent, var(--accent), transparent); border-radius:2px; margin:8px 0 12px}
+  .side-group{display:flex; flex-direction:column; gap:8px}
+  .btn{background:linear-gradient(180deg,#11264a,#0f203d); color:var(--text); border:1px solid #1f2b45; padding:10px 12px; border-radius:10px; cursor:pointer; text-align:left}
+  .btn:hover{filter:brightness(1.08)}
+  .muted{color:var(--muted)}
+  .topbar{position:sticky; top:0; z-index:20; backdrop-filter:saturate(1.2) blur(10px); background:#0d162988; border-bottom:1px solid #1e2a44}
+  .topbar-inner{display:flex; justify-content:space-between; align-items:center; gap:12px; padding:10px 16px}
+  .admin-link{display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:10px; text-decoration:none; background:linear-gradient(180deg,#163055,#142745); border:1px solid #25406c; color:var(--text)}
+  .admin-link:hover{filter:brightness(1.08)}
+  .card{background:linear-gradient(180deg,var(--card),var(--card2)); border:1px solid #1f2b45; border-radius:16px; padding:16px; box-shadow:var(--ring)}
+  .hline{height:2px; background:linear-gradient(90deg, transparent, var(--accent), transparent); border-radius:2px; margin:8px 0 14px}
+  .grid{display:grid; gap:16px; grid-template-columns:repeat(12, minmax(0,1fr))}
+  .kpi-title{opacity:.8; font-size:12px}
+  .kpi-value{font-size:28px; font-weight:700}
+  .delta{font-size:12px; opacity:.9}
+  .delta.up::before{content:"▲ "; color:var(--ok)}
+  .delta.down::before{content:"▼ "; color:var(--crit)}
+  .pill{display:inline-flex; align-items:center; gap:6px; padding:7px 12px; border-radius:999px; font-size:12px; border:1px solid #24324f; background:#0d1730; color:var(--text); cursor:pointer}
+  .pill.ok{background:#22c55e22; color:#bbf7d0; border-color:#22c55e}
+  .pill.warn{background:#f59e0b22; color:#fde68a; border-color:#f59e0b}
+  .pill.crit{background:#ef444422; color:#fecaca; border-color:#ef4444}
+  .ticker{display:flex; gap:12px; align-items:center; overflow:auto; white-space:nowrap; padding:10px 14px}
+  .kpi-spark{width:100%; height:28px}
+  @media (max-width: 1080px){ .layout{grid-template-columns:1fr} .sidebar{position:static} }
+  @media (max-width: 680px){ .grid{grid-template-columns:repeat(6,minmax(0,1fr))} }
+  @media (max-width: 520px){ .grid{grid-template-columns:repeat(4,minmax(0,1fr))} }
+</style>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <h2 style="margin:0">Admin SOC Dashboard</h2>
+    <a class="admin-link" href="{% url 'admin:index' %}" onclick="this.href=this.href||'/admin/';">Administration</a>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- LEFT SIDEBAR: tools -->
+  <aside class="sidebar">
+    <h4 class="side-title">Tools</h4>
+    <div class="side-line"></div>
+    <div class="side-group">
+      <button class="btn" id="btnReport">Open Report Builder</button>
+      <button class="btn" id="exportPDF">Export PDF (Report)</button>
+      <button class="btn" id="exportCSV">Export CSVs</button>
+      <button class="btn" id="btnSnapshot">Quick Snapshot PDF</button>
+    </div>
+    <h4 class="side-title" style="margin-top:16px">Tips</h4>
+    <div class="side-line"></div>
+    <div class="muted" style="font-size:13px; line-height:1.5">
+      • Zoom/pan the line chart with mouse wheel or pinch.<br/>
+      • Use the Status Filter to focus the donut.<br/>
+      • Reports are structured tables (not screenshots).
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main style="min-width:0">
+    <!-- Alerts Ticker -->
+    <div class="card ticker" id="alertsBar">
+      <strong style="opacity:.8">Alerts:</strong>
+    </div>
+
+    <!-- KPIs -->
+    <div class="grid" style="margin-top:10px">
+      <div class="card" style="grid-column: span 3;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div class="kpi-title">Total Donations (14d)</div>
+            <div class="kpi-value" id="kpiDonations">—</div>
+            <div class="delta up" id="kpiDonationsDelta">—</div>
+          </div>
+          <span class="pill ok" id="kpiDonationsPill">Healthy</span>
+        </div>
+        <svg class="kpi-spark" viewBox="0 0 100 28"><polyline id="sparkDonations" fill="none" stroke="var(--accent)" stroke-width="2" points=""/></svg>
+      </div>
+
+      <div class="card" style="grid-column: span 3;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div class="kpi-title">Pending</div>
+            <div class="kpi-value" id="kpiPending">—</div>
+            <div class="delta down" id="kpiPendingDelta">—</div>
+          </div>
+          <span class="pill warn" id="kpiPendingPill">Attention</span>
+        </div>
+        <div style="height:10px; background:#13213a; border-radius:6px; margin-top:8px;">
+          <div id="pendingBar" style="height:10px; width:0%; background:var(--accent2); border-radius:6px;"></div>
+        </div>
+      </div>
+
+      <div class="card" style="grid-column: span 3;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div class="kpi-title">Allocated</div>
+            <div class="kpi-value" id="kpiAllocated">—</div>
+            <div class="delta up" id="kpiAllocatedDelta">—</div>
+          </div>
+        <span class="pill ok" id="kpiAllocatedPill">Healthy</span>
+        </div>
+        <div style="height:10px; background:#13213a; border-radius:6px; margin-top:8px;">
+          <div id="allocBar" style="height:10px; width:0%; background:var(--ok); border-radius:6px;"></div>
+        </div>
+      </div>
+
+      <div class="card" style="grid-column: span 3;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div class="kpi-title">Expired</div>
+            <div class="kpi-value" id="kpiExpired">—</div>
+            <div class="delta down" id="kpiExpiredDelta">—</div>
+          </div>
+          <span class="pill warn" id="kpiExpiredPill">Attention</span>
+        </div>
+        <svg class="kpi-spark" viewBox="0 0 100 28"><polyline id="sparkExpire" fill="none" stroke="var(--accent2)" stroke-width="2" points=""/></svg>
+      </div>
+    </div>
+
+    <!-- KEEP: LINE CHART -->
+    <div class="card" style="margin-top:8px">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="margin:0">Donations — Last 14 days</h3>
+        <div style="display:flex; gap:8px;">
+          <span class="pill" id="range-7d">7d</span>
+          <span class="pill" id="range-14d">14d</span>
+          <button class="pill" id="btnResetZoom">Reset Zoom</button>
+        </div>
+      </div>
+      <div class="hline"></div>
+      <div style="height:320px"><canvas id="trendChart"></canvas></div>
+    </div>
+
+    <!-- STATISTICS ROW -->
+    <div class="grid" style="margin-top:8px">
+      <!-- Status Distribution + Filter -->
+      <div class="card" style="grid-column: span 6;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h3 style="margin:0">Status Distribution</h3>
+          <div style="display:flex; gap:6px;">
+            <button class="pill crit" data-status-filter="EXPIRED">EXPIRED</button>
+            <button class="pill warn" data-status-filter="PENDING">PENDING</button>
+            <button class="pill ok"   data-status-filter="ALLOCATED">ALLOCATED</button>
+            <button class="pill" id="clearFilter">Clear</button>
+          </div>
+        </div>
+        <div class="hline"></div>
+        <div style="height:280px"><canvas id="statusPie"></canvas></div>
+      </div>
+
+      <!-- Fulfillment Progress (Delivered % of Offered) -->
+      <div class="card" style="grid-column: span 6;">
+        <h3 style="margin:0">Fulfillment Progress</h3>
+        <div class="hline"></div>
+        <div style="display:grid; grid-template-columns: 260px 1fr; gap:16px; align-items:center;">
+          <div style="height:220px"><canvas id="fulfillGauge"></canvas></div>
+          <div>
+            <div class="kpi-title">Delivered / Offered</div>
+            <div class="kpi-value"><span id="delivVal">0</span> / <span id="offerVal">0</span></div>
+            <div class="delta up" id="fulfillPct">0%</div>
+            <p class="muted" style="margin-top:8px;">Shows the share of people successfully served out of those promised/offered in the selected period.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Offscreen capture (optional snapshot) -->
+    <div id="captureArea" style="position:absolute; left:-9999px; top:0; width:1200px;"></div>
+  </main>
+</div>
+
+<script>
+  // Colors & helpers
+  const getCSS = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const ACCENT  = getCSS('--accent');
+  const ACCENT2 = getCSS('--accent2');
+  const thresholds = { pendingWarn:25, pendingCrit:40, expiredWarn:10, expiredCrit:20 };
+
+  function setPill(el, sev, labels={ok:'Healthy', warn:'Attention', crit:'Critical'}) {
+    el.classList.remove('ok','warn','crit'); el.classList.add(sev);
+    el.textContent = labels[sev] || sev;
+  }
+  function sparkPoints(series, height=28){
+    if (!series || !series.length) return "";
+    const max = Math.max(...series), min = Math.min(...series);
+    return series.map((v,i)=>{
+      const x = Math.round(i * (100/(series.length-1)));
+      const y = 2 + Math.round((max===min?0:(max-v)/(max-min)) * (height-6));
+      return `${x},${y}`;
+    }).join(" ");
+  }
+
+  async function fetchStats(){ const r = await fetch("{% url 'admin_stats_api' %}"); return r.json(); }
+
+  // Globals
+  let chartTrend, chartStatus, chartGauge;
+  let labelsAll=[], valuesAll=[], statusCounts=[];
+  let offeredPeople=0, deliveredPeople=0;
+  let statusFilter=''; // EXPIRED | PENDING | ALLOCATED | ''
+
+  // Alerts from statusCounts
+  function renderAlerts(){
+    const bar = document.getElementById('alertsBar'); bar.querySelectorAll('.pill').forEach(p=>p.remove());
+    statusCounts.sort((a,b)=>b.count-a.count).forEach(s=>{
+      const sev = s.status==='EXPIRED' ? 'crit' : (s.status==='PENDING' ? 'warn' : 'ok');
+      const span = document.createElement('span'); span.className = 'pill '+sev;
+      span.textContent = `${s.status} (${s.count})`; bar.appendChild(span);
+    });
+  }
+
+  // KPIs
+  function renderKPIs(){
+    const total = valuesAll.reduce((a,b)=>a+b,0);
+    document.getElementById('kpiDonations').textContent = total.toLocaleString();
+    document.getElementById('sparkDonations').setAttribute('points', sparkPoints(valuesAll));
+    if (valuesAll.length>=14){
+      const prev = valuesAll.slice(0,7).reduce((a,b)=>a+b,0);
+      const cur  = valuesAll.slice(7).reduce((a,b)=>a+b,0);
+      const delta = prev ? ((cur-prev)/prev*100) : 0;
+      const el = document.getElementById('kpiDonationsDelta');
+      el.classList.toggle('up', delta>=0); el.classList.toggle('down', delta<0);
+      el.textContent = `${delta>=0?'+':''}${delta.toFixed(1)}%`;
+      setPill(document.getElementById('kpiDonationsPill'), delta>=0 ? 'ok' : 'warn');
+    }
+
+    const byStatus = Object.fromEntries(statusCounts.map(x=>[x.status, x.count]));
+    const pending  = byStatus['PENDING']  || 0;
+    const allocated= byStatus['ALLOCATED']|| 0;
+    const expired  = byStatus['EXPIRED']  || 0;
+
+    document.getElementById('kpiPending').textContent = pending;
+    document.getElementById('pendingBar').style.width = `${Math.min(100, pending)}%`;
+    setPill(document.getElementById('kpiPendingPill'), pending>=thresholds.pendingCrit?'crit':(pending>=thresholds.pendingWarn?'warn':'ok'));
+
+    document.getElementById('kpiAllocated').textContent = allocated;
+    document.getElementById('allocBar').style.width = `${Math.min(100, allocated)}%`;
+    setPill(document.getElementById('kpiAllocatedPill'), 'ok');
+
+    document.getElementById('kpiExpired').textContent = expired;
+    document.getElementById('sparkExpire').setAttribute('points', sparkPoints([expired, expired-1, expired+2, expired-3, expired]));
+    setPill(document.getElementById('kpiExpiredPill'), expired>=thresholds.expiredCrit?'crit':(expired>=thresholds.expiredWarn?'warn':'ok'));
+  }
+
+  // Trend chart
+  function buildTrend(){
+    const ctx = document.getElementById('trendChart').getContext('2d');
+    chartTrend && chartTrend.destroy();
+    chartTrend = new Chart(ctx,{
+      type:'line',
+      data:{ labels:labelsAll, datasets:[{ label:'Donations', data:valuesAll, tension:.3, borderColor:ACCENT, backgroundColor:'transparent', pointRadius:0 }]},
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{display:false},
+          annotation:{ annotations:{ tgt:{ type:'line', yMin: Math.max(...valuesAll)*0.8, yMax: Math.max(...valuesAll)*0.8, borderColor:'#f59e0b', borderWidth:1, label:{display:true, content:'Target', color:'#f59e0b', backgroundColor:'#0000'}}}},
+          zoom:{ zoom:{wheel:{enabled:true}, pinch:{enabled:true}, mode:'x'}, pan:{enabled:true, mode:'x'} }
+        },
+        scales:{ x:{ticks:{color:'#9fb0c3'}, grid:{color:'#1f2b45'}}, y:{ticks:{color:'#9fb0c3'}, grid:{color:'#1f2b45'}} }
+      }
+    });
+  }
+  function setRange(days){ const s = Math.min(days, labelsAll.length); chartTrend.data.labels = labelsAll.slice(-s); chartTrend.data.datasets[0].data = valuesAll.slice(-s); chartTrend.update(); }
+
+  // Status donut with filter
+  function buildStatusPie(){
+    const el = document.getElementById('statusPie'); if (!el) return;
+    const labels = statusCounts.map(s=>s.status);
+    const counts = statusCounts.map(s=>s.count);
+    const filteredCounts = !statusFilter ? counts : statusCounts.map(s=> s.status===statusFilter ? s.count : 0);
+    chartStatus && chartStatus.destroy();
+    chartStatus = new Chart(el.getContext('2d'), {
+      type:'doughnut',
+      data:{ labels, datasets:[{ data:filteredCounts, backgroundColor:['#ef4444','#f59e0b','#22c55e','#38bdf8','#a78bfa'] }] },
+      options:{ responsive:true, plugins:{ legend:{labels:{color:'#cfd8e3'}} } }
+    });
+  }
+
+  // Fulfillment gauge (Delivered vs Remaining)
+  function buildFulfillment(){
+    const el = document.getElementById('fulfillGauge'); if (!el) return;
+    const delivered = +deliveredPeople || 0;
+    const offered   = +offeredPeople   || 0;
+    const remaining = Math.max(0, offered - delivered);
+    const pct = offered ? (delivered/offered*100) : 0;
+
+    document.getElementById('delivVal').textContent = delivered.toLocaleString();
+    document.getElementById('offerVal').textContent = offered.toLocaleString();
+    document.getElementById('fulfillPct').textContent = `${pct.toFixed(1)}%`;
+
+    chartGauge && chartGauge.destroy();
+    chartGauge = new Chart(el.getContext('2d'), {
+      type:'doughnut',
+      data:{ labels:['Delivered','Remaining'], datasets:[{ data:[delivered, remaining], backgroundColor:[ACCENT, '#27354f'] }] },
+      options:{ responsive:true, cutout:'70%', plugins:{ legend:{labels:{color:'#cfd8e3'}} } }
+    });
+  }
+
+  // UI bindings
+  document.getElementById('btnResetZoom').addEventListener('click', ()=> chartTrend && chartTrend.resetZoom());
+  document.getElementById('range-7d').onclick  = ()=> setRange(7);
+  document.getElementById('range-14d').onclick = ()=> setRange(14);
+
+  // Status filter buttons
+  document.querySelectorAll('[data-status-filter]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ statusFilter = btn.getAttribute('data-status-filter'); buildStatusPie(); });
+  });
+  document.getElementById('clearFilter').addEventListener('click', ()=>{ statusFilter=''; buildStatusPie(); });
+
+  // CSV export (status, donations, fulfillment)
+  document.getElementById('exportCSV').addEventListener('click', ()=>{
+    const saveCSV = (rows, name)=>{
+      const csv = rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'}); 
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click();
+    };
+    // status_counts
+    saveCSV([['Status','Count']].concat(statusCounts.map(s=>[s.status, s.count])), `Hopemeals_StatusCounts_${Date.now()}.csv`);
+    // donations_over_days
+    if (labelsAll.length) saveCSV([['Date','Count']].concat(labelsAll.map((d,i)=>[d, valuesAll[i]])), `Hopemeals_Donations14d_${Date.now()}.csv`);
+    // fulfillment summary
+    const offered = offeredPeople||0, delivered = deliveredPeople||0, pct = offered? (delivered/offered*100).toFixed(2) : '0.00';
+    saveCSV([['Offered','Delivered','Fulfillment %'], [offered, delivered, pct]], `Hopemeals_Fulfillment_${Date.now()}.csv`);
+  });
+
+  // Structured PDF (not a screenshot)
+  document.getElementById('exportPDF').addEventListener('click', ()=>{
+    const { jsPDF } = window.jspdf; const doc = new jsPDF({orientation:'portrait', unit:'pt', format:'a4'});
+    const margin = 40; let y = margin;
+    doc.setFont('helvetica','bold'); doc.setFontSize(18);
+    doc.text('Hopemeals — Admin Report', margin, y); y += 20;
+    doc.setFont('helvetica','normal'); doc.setFontSize(11);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, margin, y); y += 16;
+
+    // High-level summary line
+    const total = valuesAll.reduce((a,b)=>a+b,0);
+    const byStatus = Object.fromEntries(statusCounts.map(x=>[x.status, x.count]));
+    const pending  = byStatus['PENDING']||0, allocated = byStatus['ALLOCATED']||0, expired = byStatus['EXPIRED']||0;
+    const offered  = offeredPeople||0, delivered = deliveredPeople||0;
+    const pct = offered ? (delivered/offered*100).toFixed(2) : '0.00';
+    doc.text(`14-day donations: ${total.toLocaleString()}  |  Pending: ${pending}  |  Allocated: ${allocated}  |  Expired: ${expired}`, margin, y); y += 14;
+    doc.text(`Fulfillment — Offered: ${offered}  Delivered: ${delivered}  ( ${pct}% )`, margin, y); y += 14;
+
+    // Tables
+    if (statusCounts.length && doc.autoTable){
+      doc.setFont('helvetica','bold'); doc.text('Status Summary', margin, y); y += 6;
+      doc.autoTable({ startY:y, head:[['Status','Count']], body: statusCounts.map(s=>[s.status, s.count]) });
+      y = doc.lastAutoTable.finalY + 12;
+    }
+    if (labelsAll.length && doc.autoTable){
+      doc.setFont('helvetica','bold'); doc.text('Donations — Last 14 days', margin, y); y += 6;
+      const body = labelsAll.map((d,i)=>[d, valuesAll[i]]);
+      doc.autoTable({ startY:y, head:[['Date','Count']], body });
+      y = doc.lastAutoTable.finalY + 12;
+    }
+    // Fulfillment summary table
+    doc.setFont('helvetica','bold'); doc.text('Fulfillment Summary', margin, y); y += 6;
+    doc.autoTable({ startY:y, head:[['Offered','Delivered','Fulfillment %']], body:[[offered, delivered, pct]] });
+
+    doc.save(`Hopemeals_Report_${Date.now()}.pdf`);
+  });
+
+  // Optional snapshot (kept)
+  document.getElementById('btnSnapshot').addEventListener('click', async ()=>{
+    const { jsPDF } = window.jspdf;
+    const canvas = await html2canvas(document.querySelector('.layout'), {backgroundColor:'#0b1220', scale:2});
+    const pdf = new jsPDF({ orientation:'landscape', unit:'px', format:'a4' });
+    const W = pdf.internal.pageSize.getWidth(), H = pdf.internal.pageSize.getHeight();
+    const r = Math.min(W/canvas.width, H/canvas.height);
+    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', (W-canvas.width*r)/2, (H-canvas.height*r)/2, canvas.width*r, canvas.height*r);
+    pdf.save('Hopemeals_Admin_Snapshot.pdf');
+  });
+
+  // Boot
+  (async function init(){
+    try{
+      const data = await fetchStats();
+
+      // donations_over_days
+      const days = data.donations_over_days || [];
+      labelsAll = days.map(d=> d.date || d.day || '');
+      valuesAll = days.map(d=> d.count || 0);
+
+      // NOTE: your view uses 'food_status_counts'
+      statusCounts = (data.food_status_counts || data.status_counts || []).map(s=>({status: String(s.status).toUpperCase(), count: s.count||0}));
+
+      // totals for fulfillment
+      offeredPeople   = data.offered_people   || 0;
+      deliveredPeople = data.delivered_people || 0;
+
+      renderAlerts();
+      renderKPIs();
+      buildTrend(); setRange(14);
+      buildStatusPie();
+      buildFulfillment();
+    }catch(e){ console.error(e); }
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+{% block title %}Post Food{% endblock %}
+
+{% block content %}
+</div>
+<div class="hm" ><div class="container-locked" >
+
+  <h1 class="page-title">New Donation</h1>
+
+  <div class="card form-card">
+    <form id="donationForm" method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+        <div class="alert error">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <!-- Grid -->
+      <div class="form-grid">
+        <!-- Item name -->
+        <div class="field">
+          <label for="id_item_name">Item name <span class="req">*</span></label>
+          {{ form.item_name }}
+          {% if form.item_name.errors %}
+            <div class="field-error">{{ form.item_name.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Quantity (people) -->
+        <div class="field">
+          <label for="id_quantity_people">Quantity (people) <span class="req">*</span></label>
+          {{ form.quantity_people }}
+          <div class="hint">Enter how many people this can feed.</div>
+          {% if form.quantity_people.errors %}
+            <div class="field-error">{{ form.quantity_people.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Photo -->
+        <div class="field">
+          <label for="id_image">Photo</label>
+          <label class="dropzone" for="id_image" id="imageDrop">
+            <div class="dz-inner">
+              <div class="dz-ico">🖼️</div>
+              <div><strong>Click to upload</strong> or drag a photo here</div>
+              <div class="hint">PNG / JPG</div>
+            </div>
+          </label>
+          {{ form.image }}
+          <img id="preview" alt="Preview" class="preview" style="display:none"/>
+          {% if form.image.errors %}
+            <div class="field-error">{{ form.image.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Note -->
+        <div class="field">
+          <label for="id_raw_note">Describe & prepared time</label>
+          {{ form.raw_note }}
+          <div class="hint">
+            Example: <code>Bread loaves; prepared: 2025-08-31 19:30; expires: 2025-09-01 12:00</code>
+          </div>
+          {% if form.delivery_buffer_minutes %}
+            <input type="hidden" name="{{ form.delivery_buffer_minutes.name }}" value="15">
+          {% endif %}
+          {% if form.raw_note.errors %}
+            <div class="field-error">{{ form.raw_note.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Map (full width) -->
+        <div class="field field--full">
+          <label>Pickup location (tap on the map) <span class="req">*</span></label>
+          <div id="map" class="map"></div>
+          <div class="hidden">
+            {{ form.pickup_lat }} {{ form.pickup_lng }}
+          </div>
+          <div id="coords" class="hint">Click on map to set pickup point.</div>
+          {% if form.pickup_lat.errors or form.pickup_lng.errors %}
+            <div class="field-error">
+              {{ form.pickup_lat.errors|join:", " }} {{ form.pickup_lng.errors|join:", " }}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+{% if suggested_ngos %}
+  <div class="alert alert-info">
+    Suggested nearby NGOs:
+    <ul>
+      {% for u in suggested_ngos %}
+        <li>{{ u.username }}{% if u.ngo_location and u.ngo_location.address_line %} — {{ u.ngo_location.address_line }}{% endif %}</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <a class="btn secondary" href="javascript:history.back()">Cancel</a>
+        <button class="btn" type="submit">Submit Donation</button>
+      </div>
+    </form>
+  </div>
+
+</div></div>
+
+<!-- Page-scoped styles -->
+<style>
+  /* Light defaults in case base.css doesn’t define these */
+  .hm{--text:#e2e8f0;--muted:#94a3b8;--border:#1f2a44;--bg:#0b1220;--bg-soft:#0e1627;--brand:#3b82f6;--brand-600:#2563eb;--error:#ef4444}
+
+  .hm .page-title{margin-top:28px;margin-bottom:14px}
+  .hm .card{background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:16px}
+  .hm .form-card{padding:18px 16px 14px}
+  .hm .muted{color:var(--muted)}
+  .hm .tiny{font-size:.85rem}
+  .hm .alert.error{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.4);color:#fecaca;padding:.6rem .8rem;border-radius:10px;margin-bottom:12px}
+
+  .hm .form-grid{
+    display:grid;gap:14px;
+    grid-template-columns:1fr 1fr;
+  }
+  .hm .field{display:flex;flex-direction:column;gap:.4rem}
+  .hm .field--full{grid-column:1 / -1}
+  .hm label{font-weight:800;color:#cbd5e1}
+  .hm .req{color:#60a5fa}
+  .hm .hint{color:var(--muted);font-weight:700}
+  .hm .field-error{color:#fecaca;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);padding:.4rem .55rem;border-radius:8px}
+
+  .hm input[type="text"],
+  .hm input[type="number"],
+  .hm input[type="file"],
+  .hm textarea{
+    width:100%;
+    background:var(--bg-soft);
+    color:var(--text);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:.6rem .7rem;
+    outline:none;
+  }
+  .hm textarea{min-height:120px;resize:vertical}
+
+  .hm #id_image{display:none} /* hidden; label acts as dropzone */
+  .hm .dropzone{
+    display:flex;align-items:center;justify-content:center;text-align:center;
+    min-height:120px;border:2px dashed var(--border);border-radius:12px;background:var(--bg-soft);
+    cursor:pointer;padding:12px;
+  }
+  .hm .dropzone.drag{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,130,246,.25)}
+  .hm .dz-inner{display:flex;flex-direction:column;gap:.25rem;align-items:center}
+  .hm .dz-ico{font-size:1.4rem}
+
+  .hm .preview{margin-top:.55rem;max-width:100%;border-radius:10px;border:1px solid var(--border)}
+
+  .hm .map{height:320px;border-radius:12px;border:1px solid var(--border);margin:.5rem 0;background:#0a1020}
+  .hm .hidden{display:none}
+
+  .hm .btn{
+    display:inline-block;padding:.65rem 1rem;border-radius:10px;
+    background:var(--brand);border:1px solid var(--brand-600);color:#fff;
+    text-decoration:none;font-weight:800
+  }
+  .hm .btn.secondary{
+    background:#111c31;border-color:var(--border);color:#cbd5e1
+  }
+  .hm .form-actions{
+    display:flex;justify-content:flex-end;gap:10px;margin-top:12px
+  }
+.container-locked {
+  max-width: 800px;
+  margin: 0 auto;  /* centers horizontally */
+  padding: 20px;
+}
+
+  @media (max-width: 920px){ .hm .form-grid{grid-template-columns:1fr} }
+</style>
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+(function(){
+  // Improve defaults
+  const qty  = document.getElementById('id_quantity_people');
+  const note = document.getElementById('id_raw_note');
+  const fileInput = document.getElementById('id_image');
+  const drop = document.getElementById('imageDrop');
+  const preview = document.getElementById('preview');
+
+  if(qty){ qty.min = qty.min || 1; qty.inputMode = 'numeric'; }
+  if(note && !note.placeholder){
+    note.placeholder = "Describe the food; prepared: YYYY-MM-DD HH:MM; expires: YYYY-MM-DD HH:MM";
+  }
+  if(fileInput){ fileInput.accept = 'image/*'; }
+
+  // Drag & drop preview
+  function showPreview(file){
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = e => { preview.src = e.target.result; preview.style.display='block'; };
+    reader.readAsDataURL(file);
+  }
+  if(drop){
+    drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('drag'));
+    drop.addEventListener('drop', e => {
+      e.preventDefault(); drop.classList.remove('drag');
+      if(e.dataTransfer.files && e.dataTransfer.files[0]){
+        fileInput.files = e.dataTransfer.files;
+        showPreview(e.dataTransfer.files[0]);
+      }
+    });
+  }
+  if(fileInput){ fileInput.addEventListener('change', e => showPreview(e.target.files[0])); }
+
+  // Leaflet map picker (Mysuru default center)
+  const map = L.map('map').setView([12.2958, 76.6394], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
+  let marker;
+  const latInput = document.getElementById('id_pickup_lat');
+  const lngInput = document.getElementById('id_pickup_lng');
+  const coords = document.getElementById('coords');
+
+  map.on('click', function(e){
+    if (marker) map.removeLayer(marker);
+    marker = L.marker(e.latlng).addTo(map);
+    const lat = e.latlng.lat.toFixed(6);
+    const lng = e.latlng.lng.toFixed(6);
+    if (latInput) latInput.value = lat;
+    if (lngInput) lngInput.value = lng;
+    coords.textContent = `Pickup set at ${lat}, ${lng}`;
+    coords.classList.remove('error');
+  });
+  // Invalidate for any hidden tabs/layout shifts
+  setTimeout(() => map.invalidateSize(), 250);
+
+  // Require location before submit
+  document.getElementById('donationForm').addEventListener('submit', function(ev){
+    if (!(latInput && latInput.value && lngInput && lngInput.value)) {
+      ev.preventDefault();
+      coords.textContent = "Please click on the map to set pickup location.";
+      coords.style.color = "#fca5a5";
+      map.invalidateSize();
+      window.scrollTo({ top: document.getElementById('map').getBoundingClientRect().top + window.scrollY - 100, behavior: 'smooth' });
+    }
+  });
+})();
+</script>
+{% endblock %}

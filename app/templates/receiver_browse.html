@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Available Food{% endblock %}
+{% block content %}
+<h2>Available Now</h2>
+
+{% for d in donations %}
+  <div class="card" style="margin-bottom:12px;padding:12px;border:1px solid var(--border);border-radius:10px;background:#0e1627">
+    <div style="display:flex;gap:14px;align-items:flex-start">
+      {% if d.image %}
+        <img src="{{ d.image.url }}" style="width:140px;height:100px;object-fit:cover;border-radius:8px;border:1px solid var(--border)">
+      {% endif %}
+      <div style="flex:1">
+        <div style="font-weight:800">{{ d.item_name }}</div>
+        <div class="muted">NGO: {{ d.accepted_by.username }} · Donor: {{ d.donor.username }}</div>
+        <div>Servings left: {{ d.inventory_remaining }} · Expires: {{ d.expires_at|date:"Y-m-d H:i" }}</div>
+        <div style="margin-top:6px;">
+          <span class="muted">NGO rating for this food:</span>
+          {% with cnt=d.ngo_ratings.all|length %}
+            {% if cnt %} {{ d.ngo_ratings.all|map:'stars'|join:', ' }} ({{ cnt }} ratings){% else %} No ratings yet{% endif %}
+          {% endwith %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% empty %}
+  <p>No items right now.</p>
+{% endfor %}
+
+{% endblock %}

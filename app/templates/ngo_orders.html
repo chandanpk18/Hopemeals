@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}NGO Dashboard{% endblock %}
+
+{% block content %}
+<h2>Orders</h2>
+<table border="1" cellpadding="6">
+  <tr><th>ID</th><th>Item</th><th>Qty</th><th>Receiver</th><th>Status</th><th>Actions</th></tr>
+  {% for o in orders %}
+    <tr>
+      <td>#{{ o.id }}</td>
+      <td>{{ o.item_name }}</td>
+      <td>{{ o.people_count }}</td>
+      <td>{{ o.receiver.username }}</td>
+      <td>{{ o.status }}</td>
+      <td>
+        {% if o.status == "REQUESTED" or o.status == "APPROVED" %}
+  <a class="btn" href="{% url 'ngo_approve_order' o.id %}">Approve & Allocate (PDF)</a>
+{% endif %}
+{% if o.status == "ALLOCATED" %}
+  <a class="btn secondary" href="{% url 'ngo_combined_map' o.id %}">Route Map</a>
+{% endif %}
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="6">No orders.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

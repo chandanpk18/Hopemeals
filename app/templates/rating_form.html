@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block title %}Rating{% endblock %}
+
+{% block content %}
+<h3>{{ who }} rating for donor</h3>
+<form method="post">{% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Submit Rating</button>
+</form>
+{% endblock %}

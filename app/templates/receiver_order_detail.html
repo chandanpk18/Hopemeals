@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Order #{{ order.id }}{% endblock %}
+{% block content %}
+<h2>Order #{{ order.id }} — {{ order.item_name }}</h2>
+<p><strong>Status:</strong> {{ order.status }}</p>
+<p><strong>People:</strong> {{ order.people_count }}</p>
+<p><strong>NGO:</strong> {% if order.ngo %}{{ order.ngo.username }}{% else %}–{% endif %}</p>
+<p><strong>Requested:</strong> {{ order.created_at|date:"Y-m-d H:i" }}</p>
+
+<h3>Allocations</h3>
+<table class="table">
+  <thead><tr><th>Donor</th><th>Quantity</th><th>Donation ID</th><th>Rating</th></tr></thead>
+  <tbody>
+  {% for a in allocations %}
+    <tr>
+      <td>{{ a.donation.donor.username }}</td>
+      <td>{{ a.quantity }}</td>
+      <td>#{{ a.donation.id }}</td>
+      <td>
+        {% if can_rate %}
+          <!-- Receiver rates donors AFTER delivery (one rating per donor-donation) -->
+          <a class="btn" href="{% url 'receiver_rate_donor' a.donation.id %}">Rate Donor</a>
+        {% else %}
+          <span class="muted">Available after delivery</span>
+        {% endif %}
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="4">No allocations yet.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+{% if is_ngo and delivery %}
+  <h3>Update Delivery Status</h3>
+  <p>Current: <strong>{{ delivery.status }}</strong></p>
+  <form method="post" action="{% url 'delivery_update_status' delivery.id %}" style="display:inline">
+    {% csrf_token %}
+    <input type="hidden" name="status" value="PICKED_UP">
+    <button class="btn" type="submit">Picked Up</button>
+  </form>
+  <form method="post" action="{% url 'delivery_update_status' delivery.id %}" style="display:inline">
+    {% csrf_token %}
+    <input type="hidden" name="status" value="IN_TRANSIT">
+    <button class="btn secondary" type="submit">In Transit</button>
+  </form>
+  <form method="post" action="{% url 'delivery_update_status' delivery.id %}" style="display:inline">
+    {% csrf_token %}
+    <input type="hidden" name="status" value="DELIVERED">
+    <button class="btn warn" type="submit">Delivered</button>
+  </form>
+{% endif %}
+{% endblock %}

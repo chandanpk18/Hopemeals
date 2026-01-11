@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Deliveries{% endblock %}
+{% block content %}
+<h2>Your Deliveries</h2>
+<table class="table">
+  <thead><tr><th>#</th><th>Order</th><th>Status</th><th>Updated</th><th>Actions</th></tr></thead>
+  <tbody>
+  {% for d in deliveries %}
+    <tr>
+      <td>#{{ d.id }}</td>
+      <td><a href="{% url 'receiver_order_detail' d.order.id %}">Order #{{ d.order.id }}</a></td>
+      <td>{{ d.status }}</td>
+      <td>{% if d.delivered_at %}{{ d.delivered_at|date:"Y-m-d H:i" }}{% else %}–{% endif %}</td>
+      <td>
+        <form method="post" action="{% url 'delivery_update_status' d.id %}" style="display:inline">{% csrf_token %}
+          <input type="hidden" name="status" value="PICKED_UP"/>
+          <button class="btn" type="submit">Picked Up</button>
+        </form>
+        <form method="post" action="{% url 'delivery_update_status' d.id %}" style="display:inline">{% csrf_token %}
+          <input type="hidden" name="status" value="IN_TRANSIT"/>
+          <button class="btn" type="submit">In Transit</button>
+        </form>
+        <form method="post" action="{% url 'delivery_update_status' d.id %}" style="display:inline">{% csrf_token %}
+          <input type="hidden" name="status" value="DELIVERED"/>
+          <button class="btn" type="submit">Delivered</button>
+        </form>
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="5">No deliveries yet.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

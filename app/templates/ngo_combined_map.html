@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Route for Order #{{ order.id }} – {{ order.item_name }}</h2>
+<div id="map" style="height:420px;border:1px solid #ccc;"></div>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const pickups = {{ pickups|safe }};
+  const drop = {{ drop|safe }};
+  const map = L.map('map').setView([drop.lat, drop.lng], 12);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
+
+  pickups.forEach(p => L.marker([p.lat, p.lng]).addTo(map).bindPopup("Pickup: " + p.label));
+  L.marker([drop.lat, drop.lng]).addTo(map).bindPopup("Deliver to: " + drop.label);
+
+  const pts = pickups.map(p => [p.lat, p.lng]).concat([[drop.lat, drop.lng]]);
+  L.polyline(pts).addTo(map);
+  map.fitBounds(L.latLngBounds(pts));
+</script>
+
+{% endblock %}

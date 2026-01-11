@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+{% load static %}
+    <!-- Required Meta Tags -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <!-- Page Title -->
+    <title>HopeMeals</title>
+
+    <!-- hope -->
+    <link rel="shortcut icon" href="{% static 'assets/images/logo/hope.png' %}" type="image/x-icon">
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="{% static 'assets/css/animate-3.7.0.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/font-awesome-4.7.0.min.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/bootstrap-4.1.3.min.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/owl-carousel.min.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/jquery.datetimepicker.min.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+</head>
+<body>
+    <!-- Preloader Starts -->
+    <div class="preloader">
+        <div class="spinner"></div>
+    </div>
+    <!-- Preloader End -->
+<header class="header-area header-area2">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-2">
+                    <div class="logo-area">
+                        <a href="{% url 'home' %}" style="color: white; font-size: 20px;"><img src="{% static 'assets/images/logo/hope.png' %}" alt="HopeMeals logo">HopeMeals</a>
+                    </div>
+                </div>
+                <div class="col-lg-10">
+                    <div class="custom-navbar">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <div class="main-menu main-menu2">
+                        <ul>
+                            <li class="active"><a href="{% url 'home' %}">Home</a></li>
+                            <li><a href="{% url 'signup' %}">Signup</a></li>
+                            <li><a href="{% url 'login' %}">Login</a></li>
+                            <li><a href="{% url 'help' %}">Contact</a></li>
+                            <li><a href="{% url 'chatbot' %}">Chatbot</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- Banner Area Starts -->
+    <section class="banner-area text-center">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h6>Fighting Hunger, Reducing Waste</h6>
+                    <h1>Don't Waste <span class="prime-color">Food,</span><br>  
+                    <span class="style-change">Share <span class="prime-color">Hope</span>.</span></h1>
+                    <p class="mt-4">HopeMeals connects food donors with NGOs and receivers to fight food waste and provide meals to communities in need.</p>
+                </div>
+            </div>
+        </div> 
+    </section>
+    <!-- Banner Area End -->
+
+    <!-- About HopeMeals Starts -->
+    <section class="about-area section-padding">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 align-self-center">
+                    <div class="about-img">
+                        <img src="{% static 'assets/images/food4.jpg' %}" class="img-fluid" alt="HopeMeals">
+                    </div>
+                </div>
+                <div class="col-md-6 align-self-center">
+                    <div class="about-text">
+                        <h3>About HopeMeals</h3>
+                        <p class="pt-3">HopeMeals is a Django-based platform designed to reduce food waste and fight hunger by redistributing surplus food from donors to communities in need. The platform connects donors, NGOs, and receivers, ensuring that excess food is utilized for the welfare of others.</p>
+                        <p>By offering a seamless donation system, NGOs can validate food donations and deliver them to those in need, all while providing transparency and tracking. Together, we can reduce food waste, support local communities, and create a sustainable impact.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- About HopeMeals End -->
+
+    <!-- How HopeMeals Helps Social Welfare Starts -->
+    <section class="how-it-helps-area" style="padding-top:1%;padding-Bottom:1%;">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-md-12">
+                    <h3>How HopeMeals Contributes to Social Welfare</h3>
+                    <p>HopeMeals isn't just a platform for food donation; it's a vehicle for social change, helping the community, reducing waste, and spreading kindness.</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="how-it-helps-step" style="padding-top:4px;">
+                        <span ><i class="fa fa-heart" style="font-size: 22px; color: #f39c12;"></i> <h5 style="display:inline; margin-left:10px;">Fighting Hunger</h5></span>
+                        <p>By connecting food donors directly to NGOs, we ensure that food reaches those who need it most, reducing hunger and improving the lives of vulnerable populations.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="how-it-helps-step" style="padding-top:4px;">
+                        <span  style="align-items:center;"><i class="fa fa-recycle" style="font-size: 22px; color: #27ae60;"></i> <h5 style="display:inline; margin-left:10px;">Reducing Food Waste</h5></span>
+                        <p style="text-align: center;">Our platform tackles food waste by redistributing excess food to those in need, instead of letting it go to waste. This helps contribute to a more sustainable future.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="how-it-helps-step" style="padding-top:4px;">
+                       <span><i class="fa fa-users" style="font-size: 22px; color: #2980b9;"></i> <h5 style="display:inline; margin-left:10px;">Supporting Communities</h5></span>
+                        <p>Through collaboration with local NGOs, HopeMeals fosters stronger, more resilient communities by ensuring equitable access to food for all.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- How HopeMeals Helps Social Welfare End -->
+
+    <!-- Success Stories Starts -->
+    <section class="success-stories-area " style="padding-top:1%;padding-Bottom:1%;">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-md-12 mt-6">
+                    <h3>Success Stories</h3>
+                    <p>Here’s how HopeMeals has been making a difference in the lives of people and communities.</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="single-story">
+                        <img src="{% static 'assets/images/food1.jpg' %}" class="img-fluid" alt="Success Story">
+                        <h5>Reducing Hunger in Rural Areas</h5>
+                        <p>Through our platform, a local NGO has been able to provide meals to over 500 families in rural areas, where food insecurity was a major issue.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="single-story">
+                        <img src="{% static 'assets/images/food4.jpg' %}" class="img-fluid" alt="Success Story">
+                        <h5>Feeding the Homeless in Urban Centers</h5>
+                        <p>HopeMeals has been able to support several urban shelters by providing donated food, helping hundreds of homeless individuals receive nutritious meals.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="single-story">
+                        <img src="{% static 'assets/images/food6.jpg' %}" class="img-fluid" alt="Success Story">
+                        <h5>Collaboration with Local Restaurants</h5>
+                        <p>Local restaurants have joined HopeMeals, providing leftover meals to NGOs, ensuring that their surplus food is given to people who need it the most.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Success Stories End -->
+
+    <!-- Call to Action Starts -->
+    <section class="cta-area text-center " style="padding-top:1%;padding-Bottom:1%;">
+        <div class="container">
+            <h2 style="color:orange;">Join the HopeMeals Movement Today</h2>
+            <p>Help us reduce food waste, fight hunger, and make a positive impact on our community. Whether you're donating or receiving, HopeMeals makes it easy to give back.</p>
+            <a href="{% url 'ngos' %}" class="template-btn mt-4">Sign Up Now</a>
+        </div>
+    </section>
+    <!-- Call to Action End -->
+
+    <!-- Footer Area Starts -->
+    <footer class="footer-area">
+        <div class="footer-widget section-padding">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="single-widget single-widget1">
+                            <a href="{% url 'home' %}" style="color:white;font-size:30px;">HopeMeals</a>
+                            <p class="mt-3">HopeMeals is committed to reducing food waste, feeding the hungry, and promoting sustainability. Join us today to make a difference in the world!</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="single-widget single-widget2 my-5 my-md-0">
+                            <h5 class="mb-4">Contact Us</h5>
+                            <div class="d-flex">
+                                <div class="into-icon">
+                                    <i class="fa fa-map-marker"></i>
+                                </div>
+                                <div class="info-text">
+                                    <p><a href="https://maps.app.goo.gl/CRs4PLRPf6FxuDn98" target="_blank" rel="noopener noreferrer" style="color:gray;">Vidya Vikas Institute of Engineering & Technology</a></p>
+                                </div>
+                            </div>
+                            <div class="d-flex">
+                                <div class="into-icon">
+                                    <i class="fa fa-phone"></i>
+                                </div>
+                                <div class="info-text">
+                                    <p><a href="tel:+918431533398" style="color: gray;">+918431533398</a></p>
+                                </div>
+                            </div>
+                            <div class="d-flex">
+                                <div class="into-icon">
+                                    <i class="fa fa-envelope-o"></i>
+                                </div>
+                                <div class="info-text">
+                                    <p><a href="mailto:hopemeals2@gmail.com" style="color: gray;">support@HopeMeals.com</a></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-copyright">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-7 col-md-6">
+                        <span>&copy; <script>document.write(new Date().getFullYear());</script> All rights reserved | HopeMeals</span>
+                    </div>
+                    <div class="col-lg-5 col-md-6">
+                        <div class="social-icons">
+                            <ul>
+                                <li><a href="#"><i class="fa fa-facebook"></i></a></li>
+                                <li><a href="#"><i class="fa fa-twitter"></i></a></li>
+                                <li><a href="#"><i class="fa fa-google-plus"></i></a></li>
+                                <li><a href="#"><i class="fa fa-pinterest"></i></a></li>
+                                <li><a href="#"><i class="fa fa-instagram"></i></a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- Footer Area End -->
+
+    <!-- Javascript -->
+    <script src="{% static 'assets/js/vendor/jquery-2.2.4.min.js' %}"></script>
+    <script src="{% static 'assets/js/vendor/bootstrap-4.1.3.min.js' %}"></script>
+    <script src="{% static 'assets/js/vendor/wow.min.js' %}"></script>
+    <script src="{% static 'assets/js/vendor/owl-carousel.min.js' %}"></script>
+    <script src="{% static 'assets/js/vendor/jquery.datetimepicker.full.min.js' %}"></script>
+    <script src="{% static 'assets/js/vendor/jquery.nice-select.min.js' %}"></script>
+    <script src="{% static 'assets/js/main.js' %}"></script>
+</body>
+</html>

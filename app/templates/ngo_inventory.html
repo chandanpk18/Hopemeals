@@ -1,0 +1,17 @@
+<!-- templates/hopemeals/ngo_inventory.html -->
+{% extends "base.html" %}
+{% block title %}NGO Inventory{% endblock %}
+{% block content %}
+<h2>Your Accepted Food</h2>
+<ul class="card" style="list-style:none; padding:0;">
+  {% for f in foods %}
+    <li style="padding:10px; border-bottom:1px solid #1f2937;">
+      <strong>{{ f.item_name }}</strong> — remaining {{ f.remaining_people }} / {{ f.quantity_people }}
+      (expires {{ f.expires_at|date:"Y-m-d H:i" }})
+      <div class="muted">Status: {{ f.status }}</div>
+    </li>
+  {% empty %}
+    <li style="padding:10px;">Nothing in inventory.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

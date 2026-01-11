@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}Rating{% endblock %}
+
+{% block content %}
+
+<h2 style="margin-top: 30px;">Pending Donations</h2>
+<ul>
+{% for f in items %}
+  <li>
+    {{ f.item_name }} — serves {{ f.quantity_people }} — expires {{ f.expires_at }}
+    <a class="btn" href="{% url 'ngo_review_detail' f.id %}">View & Decide</a>
+
+<a class="btn warn" href="{% url 'ngo_reject_food' f.id %}">Reject</a>
+
+  </li>
+{% empty %}<li>No pending items.</li>{% endfor %}
+</ul>
+{% endblock %}
